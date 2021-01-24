@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.0.0)
 # version number is taken from SCIP
 project(SCIPOptSuite)
 
+option(SCIP_DEBUG "" OFF)
+if(SCIP_DEBUG)
+  add_definitions(-DSCIP_DEBUG)
+endif()
+
 set(ZIMPL_DIR ${CMAKE_BINARY_DIR})
 set(SOPLEX_DIR ${CMAKE_BINARY_DIR})
 set(SCIP_DIR ${CMAKE_BINARY_DIR})
@@ -60,4 +65,5 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
   include(FeatureSummary)
   feature_summary(WHAT ALL)
 endif()
+
 

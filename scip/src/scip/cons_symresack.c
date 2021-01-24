@@ -442,7 +442,7 @@ SCIP_RETCODE consdataCreate(
    SCIP_CALL( SCIPallocBlockMemory(scip, consdata) );
 
 #ifdef SCIP_DEBUG
-   consdata->debugcnt = 0;
+   (*consdata)->debugcnt = 0;
 #endif
 
    /* count the number of binary variables which are affected by the permutation */
