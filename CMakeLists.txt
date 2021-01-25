@@ -3,11 +3,6 @@ cmake_minimum_required(VERSION 3.0.0)
 # version number is taken from SCIP
 project(SCIPOptSuite)
 
-option(SCIP_DEBUG "" OFF)
-if(SCIP_DEBUG)
-  add_definitions(-DSCIP_DEBUG)
-endif()
-
 set(ZIMPL_DIR ${CMAKE_BINARY_DIR})
 set(SOPLEX_DIR ${CMAKE_BINARY_DIR})
 set(SCIP_DIR ${CMAKE_BINARY_DIR})
@@ -16,6 +11,12 @@ set(GCG_DIR ${CMAKE_BINARY_DIR})
 # make 'Release' the default build type
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
+endif()
+
+#debug message
+option(SCIP_DEBUG "" OFF)
+if(SCIP_DEBUG)
+  add_definitions(-DSCIP_DEBUG)
 endif()
 
 # path to e.g. findGMP module
