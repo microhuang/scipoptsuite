@@ -3,7 +3,7 @@
 /*                  This file is part of the program and library             */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SCIP is distributed under the terms of the ZIB Academic License.         */
@@ -36,7 +36,7 @@ extern "C" {
  *
  *  @ingroup BendersIncludes
  */
-EXTERN
+SCIP_EXPORT
 SCIP_RETCODE SCIPincludeBendersGcg(
    SCIP*                 scip,               /**< SCIP data structure */
    SCIP*                 origprob            /**< the SCIP instance of the original problem */
@@ -48,13 +48,13 @@ SCIP_RETCODE SCIPincludeBendersGcg(
  */
 
 /** returns the last relaxation solution */
-EXTERN
+SCIP_EXPORT
 SCIP_SOL* SCIPbendersGetRelaxSol(
    SCIP_BENDERS*         benders             /**< the Benders' decomposition structure */
    );
 
 /** returns the original problem for the given master problem */
-EXTERN
+SCIP_EXPORT
 SCIP* GCGbendersGetOrigprob(
    SCIP*                 masterprob          /**< the master problem SCIP instance */
    );

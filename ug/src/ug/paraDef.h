@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -35,7 +35,7 @@
 namespace UG
 {
 
-#define UG_VERSION                     88  /**< UG version number (multiplied by 100 to get integer number) */
+#define UG_VERSION      91  /**< UG version number (multiplied by 100 to get integer number) */
 #define MULTIPLIER_FOR_NODE_PSEUDQUEUE 20
 #define DEFAULT_NUM_EPSILON          1e-9  /**< default upper bound for floating points to be considered zero */
 #define MINEPSILON                   1e-20  /**< minimum value for any numerical epsilon */

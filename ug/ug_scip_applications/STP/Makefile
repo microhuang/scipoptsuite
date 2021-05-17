@@ -3,7 +3,7 @@
 #*             This file is part of the program and software framework       *
 #*                  UG --- Ubquity Generator Framework                       *
 #*                                                                           *
-#*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            *
+#*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            *
 #*                            fuer Informationstechnik Berlin                *
 #*                                                                           *
 #*  UG is distributed under the terms of the ZIB Academic Licence.           *
@@ -13,12 +13,12 @@
 #*                                                                           *
 #* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #@file    Makefile
-#@brief   Makefile for a parallel steiner tree problem 
+#@brief   Makefile for a parallel steiner tree problem
 #@author  Yuji Shinano
 
-UG_VERSION 	= 0.8.8
+UG_VERSION		:=	0.9.1
 #-----------------------------------------------------------------------------
-# COMM 
+# COMM
 #-----------------------------------------------------------------------------
 COMM		= cpp11
 #-----------------------------------------------------------------------------
@@ -32,7 +32,7 @@ STPDIR		= 	../../lib/scip/applications/STP
 #-----------------------------------------------------------------------------
 include $(SCIPDIR)/make/make.project
 #-----------------------------------------------------------------------------
-# set the UGLIB 
+# set the UGLIB
 #-----------------------------------------------------------------------------
 UGLIB		=	ugscip-$(UG_VERSION).$(BASE).$(COMM)
 #-----------------------------------------------------------------------------
@@ -110,7 +110,7 @@ endif
 # LASTSETTINGS    =       $(OBJDIR)/make.lastsettings
 
 # maybe setting the include path to SCIP's application directory is enough
-CFLAGS		+=	-I$(SCIPDIR)/src -DWITH_UG -I$(STPDIR)/src 
+CFLAGS		+=	-I$(SCIPDIR)/src -DWITH_UG -I$(STPDIR)/src
 ifeq ($(COMM), pth)
 CXX             =       g++
 LINKCXX         =       g++

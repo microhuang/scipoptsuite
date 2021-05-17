@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -30,6 +30,7 @@
 #include "scipParaComm.h"
 #include "scipParaInstance.h"
 #include "scipParaSolver.h"
+#include "scipParaObjLimitUpdator.h"
 #include "objscip/objeventhdlr.h"
 #include "scip/scipdefplugins.h"
 
@@ -43,6 +44,7 @@ class ScipParaObjCommPointHdlr : public scip::ObjEventhdlr
 {
    UG::ParaComm   *paraComm;
    ScipParaSolver *scipParaSolver;
+   ScipParaObjLimitUpdator *scipParaObjLimitUpdator;
    SCIP           *scipToCheckRootSolvability;
    SCIP           *originalScip;
    bool           needToSendNode;
@@ -66,10 +68,11 @@ class ScipParaObjCommPointHdlr : public scip::ObjEventhdlr
 public:
    ScipParaObjCommPointHdlr(
             UG::ParaComm   *comm,
-            ScipParaSolver *solver
+            ScipParaSolver *solver,
+	    ScipParaObjLimitUpdator *updator
          )
          : scip::ObjEventhdlr::ObjEventhdlr(solver->getScip(), "ScipParaObjCommPointHdlr", "Event handler to communicate with LC"),
-           paraComm(comm), scipParaSolver(solver), scipToCheckRootSolvability(0), originalScip(0), needToSendNode(false),
+           paraComm(comm), scipParaSolver(solver), scipParaObjLimitUpdator(updator), scipToCheckRootSolvability(0), originalScip(0), needToSendNode(false),
            originalSelectionStrategy(true), previousNNodesSolved(0), previousLpIter(0),
            cloned(false), interrupting(false), startedCollectingNodesForInitialRampUp(false) // ,
            // nThghtendLbs(0), nTightendUbs(0)

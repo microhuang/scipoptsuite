@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -49,13 +49,13 @@ ScipParaDiffSubproblemMpi::createDatatypeCounters(
    MPI_Aint address = 0;
 
 #ifndef UG_DEBUG_SOLUTION
-   int blockLengths[8];
-   MPI_Aint displacements[8];
-   MPI_Datatype types[8];
-#else
    int blockLengths[9];
    MPI_Aint displacements[9];
    MPI_Datatype types[9];
+#else
+   int blockLengths[10];
+   MPI_Aint displacements[10];
+   MPI_Datatype types[10];
 #endif
 
    MPI_CALL(
@@ -99,6 +99,14 @@ ScipParaDiffSubproblemMpi::createDatatypeCounters(
    nBlocks++;
 
    MPI_CALL(
+      MPI_Get_address( &nBendersLinearConss, &address )
+   );
+   blockLengths[nBlocks] = 1;
+   displacements[nBlocks] = address - startAddress;
+   types[nBlocks] = MPI_INT;
+   nBlocks++;
+
+   MPI_CALL(
       MPI_Get_address( &nBoundDisjunctions, &address )
    );
    blockLengths[nBlocks] = 1;
@@ -130,6 +138,9 @@ ScipParaDiffSubproblemMpi::createDatatypeCounters(
    displacements[nBlocks] = address - startAddress;
    types[nBlocks] = MPI_INT;
    nBlocks++;
+   assert( nBlocks == 10 );
+#else
+   assert( nBlocks == 9 );
 #endif
 
    MPI_CALL(
@@ -610,6 +621,139 @@ ScipParaDiffSubproblemMpi::createDatatypeLinearConss2(
 
 /** create ScipDiffSubproblemDatatype */
 MPI_Datatype
+ScipParaDiffSubproblemMpi::createDatatypeBendersLinearConss1(
+      bool memAllocNecessary
+      )
+{
+   assert(nBendersLinearConss > 0);
+
+   int nBlocks = 0;
+
+   MPI_Datatype datatype;
+
+   MPI_Aint startAddress = 0;
+   MPI_Aint address = 0;
+
+   int blockLengths[3];           // reserve maximum number of elements
+   MPI_Aint displacements[3];     // reserve maximum number of elements
+   MPI_Datatype types[3];         // reserve maximum number of elements
+
+   if( memAllocNecessary )
+   {
+      bendersLinearConss = new ScipParaDiffSubproblemLinearCons();
+      bendersLinearConss->nLinearConss = nBendersLinearConss;
+      bendersLinearConss->linearLhss = new SCIP_Real[nBendersLinearConss];
+      bendersLinearConss->linearRhss = new SCIP_Real[nBendersLinearConss];
+      bendersLinearConss->nLinearCoefs = new int[nBendersLinearConss];
+   }
+   MPI_CALL(
+      MPI_Get_address( bendersLinearConss->linearLhss, &startAddress )
+   );
+   displacements[nBlocks] = 0;
+   blockLengths[nBlocks] = bendersLinearConss->nLinearConss;
+   types[nBlocks] = MPI_DOUBLE;
+   nBlocks++;
+
+   MPI_CALL(
+      MPI_Get_address( bendersLinearConss->linearRhss, &address )
+   );
+   displacements[nBlocks] = address - startAddress;
+   blockLengths[nBlocks] = bendersLinearConss->nLinearConss;
+   types[nBlocks] = MPI_DOUBLE;
+   nBlocks++;
+
+   MPI_CALL(
+      MPI_Get_address( bendersLinearConss->nLinearCoefs, &address )
+   );
+   displacements[nBlocks] = address - startAddress;
+   blockLengths[nBlocks] = bendersLinearConss->nLinearConss;
+   types[nBlocks] = MPI_INT;
+   nBlocks++;
+
+   MPI_CALL(
+         MPI_Type_create_struct(nBlocks, blockLengths, displacements, types, &datatype)
+   );
+
+   return datatype;
+}
+
+/** create ScipDiffSubproblemDatatype */
+MPI_Datatype
+ScipParaDiffSubproblemMpi::createDatatypeBendersLinearConss2(
+      bool memAllocNecessary
+      )
+{
+   assert(nBendersLinearConss > 0 && bendersLinearConss);
+
+   int nBlocks = 0;
+
+   MPI_Datatype datatype;
+
+   MPI_Aint startAddress = 0;
+   MPI_Aint address = 0;
+
+   int nTotalBlocks = nBendersLinearConss*2;
+   int *blockLengths = new int[nTotalBlocks];
+   MPI_Aint *displacements = new MPI_Aint[nTotalBlocks];
+   MPI_Datatype *types = new MPI_Datatype[nTotalBlocks];
+
+   if( memAllocNecessary )
+   {
+      bendersLinearConss->linearCoefs = new SCIP_Real*[nBendersLinearConss];
+      bendersLinearConss->idxLinearCoefsVars = new int*[nBendersLinearConss];
+   }
+
+   for(int i = 0; i < nBendersLinearConss; i++ )
+   {
+      if( memAllocNecessary )
+      {
+         bendersLinearConss->linearCoefs[i] = new SCIP_Real[bendersLinearConss->nLinearCoefs[i]];
+         bendersLinearConss->idxLinearCoefsVars[i] = new int[bendersLinearConss->nLinearCoefs[i]];
+      }
+      if( i == 0 )
+      {
+         MPI_CALL(
+            MPI_Get_address( bendersLinearConss->linearCoefs[i], &startAddress )
+         );
+         displacements[nBlocks] = 0;
+         blockLengths[nBlocks] = bendersLinearConss->nLinearCoefs[i];
+         types[nBlocks] = MPI_DOUBLE;
+         nBlocks++;
+      }
+      else
+      {
+         MPI_CALL(
+            MPI_Get_address( bendersLinearConss->linearCoefs[i], &address )
+         );
+         displacements[nBlocks] = address - startAddress;
+         blockLengths[nBlocks] = bendersLinearConss->nLinearCoefs[i];
+         types[nBlocks] = MPI_DOUBLE;
+         nBlocks++;
+      }
+
+
+      MPI_CALL(
+         MPI_Get_address( bendersLinearConss->idxLinearCoefsVars[i], &address )
+      );
+      displacements[nBlocks] = address - startAddress;
+      blockLengths[nBlocks] = bendersLinearConss->nLinearCoefs[i];
+      types[nBlocks] = MPI_INT;
+      nBlocks++;
+   }
+
+   MPI_CALL(
+         MPI_Type_create_struct(nBlocks, blockLengths, displacements, types, &datatype)
+   );
+
+   delete [] blockLengths;
+   delete [] displacements;
+   delete [] types;
+
+   return datatype;
+}
+
+/** create ScipDiffSubproblemDatatype */
+MPI_Datatype
 ScipParaDiffSubproblemMpi::createDatatypeBoundDisjunctions1(
       bool memAllocNecessary
       )
@@ -738,6 +882,8 @@ ScipParaDiffSubproblemMpi::createDatatypeBoundDisjunctions1(
    blockLengths[nBlocks] = boundDisjunctions->nBoundDisjunctions;
    types[nBlocks] = MPI_UNSIGNED;
    nBlocks++;
+ 
+   assert(nBlocks == 12);
 
    MPI_CALL(
          MPI_Type_create_struct(nBlocks, blockLengths, displacements, types, &datatype)
@@ -788,6 +934,7 @@ ScipParaDiffSubproblemMpi::createDatatypeBoundDisjunctions2(
          );
          displacements[nBlocks] = 0;
          blockLengths[nBlocks] = boundDisjunctions->nVarsBoundDisjunction[i];
+         assert( blockLengths[nBlocks] > 0 );
          types[nBlocks] = MPI_INT;
          nBlocks++;
       }
@@ -798,6 +945,7 @@ ScipParaDiffSubproblemMpi::createDatatypeBoundDisjunctions2(
          );
          displacements[nBlocks] = address - startAddress;
          blockLengths[nBlocks] = boundDisjunctions->nVarsBoundDisjunction[i];
+         assert( blockLengths[nBlocks] > 0 );
          types[nBlocks] = MPI_INT;
          nBlocks++;
       }
@@ -808,6 +956,7 @@ ScipParaDiffSubproblemMpi::createDatatypeBoundDisjunctions2(
       );
       displacements[nBlocks] = address - startAddress;
       blockLengths[nBlocks] = boundDisjunctions->nVarsBoundDisjunction[i];
+      assert( blockLengths[nBlocks] > 0 );
       types[nBlocks] = MPI_UNSIGNED;   // actual SCIP_BoundType is enum
       nBlocks++;
 
@@ -816,6 +965,7 @@ ScipParaDiffSubproblemMpi::createDatatypeBoundDisjunctions2(
       );
       displacements[nBlocks] = address - startAddress;
       blockLengths[nBlocks] = boundDisjunctions->nVarsBoundDisjunction[i];
+      assert( blockLengths[nBlocks] > 0 );
       types[nBlocks] = MPI_DOUBLE;
       nBlocks++;
    }
@@ -963,6 +1113,8 @@ ScipParaDiffSubproblemMpi::createDatatypeVarBranchStats(
    types[nBlocks] = MPI_DOUBLE;
    nBlocks++;
 
+   assert( nBlocks == 12 );
+
    MPI_CALL(
          MPI_Type_create_struct(nBlocks, blockLengths, displacements, types, &datatype)
    );
@@ -985,9 +1137,9 @@ ScipParaDiffSubproblemMpi::createDatatypeVarValueVars1(
    MPI_Aint startAddress = 0;
    MPI_Aint address = 0;
 
-   int blockLengths[11];           // reserve maximum number of elements
-   MPI_Aint displacements[11];     // reserve maximum number of elements
-   MPI_Datatype types[11];         // reserve maximum number of elements
+   int blockLengths[3];           // reserve maximum number of elements
+   MPI_Aint displacements[3];     // reserve maximum number of elements
+   MPI_Datatype types[3];         // reserve maximum number of elements
 
    if( memAllocNecessary )
    {
@@ -1020,6 +1172,8 @@ ScipParaDiffSubproblemMpi::createDatatypeVarValueVars1(
    blockLengths[nBlocks] = varValues->nVarValueVars;
    types[nBlocks] = MPI_INT;
    nBlocks++;
+
+   assert( nBlocks == 3);
 
    MPI_CALL(
          MPI_Type_create_struct(nBlocks, blockLengths, displacements, types, &datatype)
@@ -1202,6 +1356,10 @@ ScipParaDiffSubproblemMpi::bcast(ParaComm *comm, int root)
    {
       nLinearConss = linearConss->nLinearConss;
    }
+   if( bendersLinearConss )
+   {
+      nBendersLinearConss = bendersLinearConss->nLinearConss;
+   }
    if( boundDisjunctions )
    {
       nBoundDisjunctions = boundDisjunctions->nBoundDisjunctions;
@@ -1379,6 +1537,49 @@ ScipParaDiffSubproblemMpi::bcast(ParaComm *comm, int root)
       );
    }
 
+   if( nBendersLinearConss > 0 )
+   {
+      MPI_Datatype datatypeBendersLinearConss1;
+      if( comm->getRank() == root )
+      {
+         datatypeBendersLinearConss1 = createDatatypeBendersLinearConss1(false);
+      }
+      else
+      {
+         datatypeBendersLinearConss1 = createDatatypeBendersLinearConss1(true);
+      }
+      MPI_CALL(
+         MPI_Type_commit( &datatypeBendersLinearConss1 )
+      );
+      PARA_COMM_CALL(
+            commMpi->ubcast(bendersLinearConss->linearLhss, 1, datatypeBendersLinearConss1, root)
+      );
+
+      MPI_CALL(
+         MPI_Type_free( &datatypeBendersLinearConss1 )
+      );
+
+      MPI_Datatype datatypeBendersLinearConss2;
+      if( comm->getRank() == root )
+      {
+         datatypeBendersLinearConss2 = createDatatypeBendersLinearConss2(false);
+      }
+      else
+      {
+         datatypeBendersLinearConss2 = createDatatypeBendersLinearConss2(true);
+      }
+      MPI_CALL(
+         MPI_Type_commit( &datatypeBendersLinearConss2 )
+      );
+      PARA_COMM_CALL(
+            commMpi->ubcast(bendersLinearConss->linearCoefs[0], 1, datatypeBendersLinearConss2, root)
+      );
+
+      MPI_CALL(
+         MPI_Type_free( &datatypeBendersLinearConss2 )
+      );
+   }
+
    if( nBoundDisjunctions > 0 )
    {
       MPI_Datatype datatypeBoundDisjunctions1;
@@ -1507,6 +1708,10 @@ ScipParaDiffSubproblemMpi::send(ParaComm *comm, int dest)
    if( linearConss )
    {
       nLinearConss = linearConss->nLinearConss;
+   }
+   if( bendersLinearConss )
+   {
+      nBendersLinearConss = bendersLinearConss->nLinearConss;
    }
    if( boundDisjunctions )
    {
@@ -1637,6 +1842,35 @@ ScipParaDiffSubproblemMpi::send(ParaComm *comm, int dest)
       );
    }
 
+   if( nBendersLinearConss > 0 )
+   {
+      MPI_Datatype datatypeBendersLinearConss1;
+      datatypeBendersLinearConss1 = createDatatypeBendersLinearConss1(false);
+      MPI_CALL(
+         MPI_Type_commit( &datatypeBendersLinearConss1 )
+      );
+      PARA_COMM_CALL(
+            commMpi->usend(bendersLinearConss->linearLhss, 1, datatypeBendersLinearConss1, dest, TagDiffSubproblem8)
+      );
+
+      MPI_CALL(
+         MPI_Type_free( &datatypeBendersLinearConss1 )
+      );
+
+      MPI_Datatype datatypeBendersLinearConss2;
+      datatypeBendersLinearConss2 = createDatatypeBendersLinearConss2(false);
+      MPI_CALL(
+         MPI_Type_commit( &datatypeBendersLinearConss2 )
+      );
+      PARA_COMM_CALL(
+            commMpi->usend(bendersLinearConss->linearCoefs[0], 1, datatypeBendersLinearConss2, dest, TagDiffSubproblem9)
+      );
+
+      MPI_CALL(
+         MPI_Type_free( &datatypeBendersLinearConss2 )
+      );
+   }
+
    if( nBoundDisjunctions > 0 )
    {
       MPI_Datatype datatypeBoundDisjunctions1;
@@ -1645,7 +1879,7 @@ ScipParaDiffSubproblemMpi::send(ParaComm *comm, int dest)
          MPI_Type_commit( &datatypeBoundDisjunctions1 )
       );
       PARA_COMM_CALL(
-            commMpi->usend(&(boundDisjunctions->nTotalVarsBoundDisjunctions), 1, datatypeBoundDisjunctions1, dest, TagDiffSubproblem8)
+            commMpi->usend(&(boundDisjunctions->nTotalVarsBoundDisjunctions), 1, datatypeBoundDisjunctions1, dest, TagDiffSubproblem10)
       );
 
       MPI_CALL(
@@ -1658,7 +1892,7 @@ ScipParaDiffSubproblemMpi::send(ParaComm *comm, int dest)
          MPI_Type_commit( &datatypeBoundDisjunctions2 )
       );
       PARA_COMM_CALL(
-            commMpi->usend(boundDisjunctions->idxBoundDisjunctionVars[0], 1, datatypeBoundDisjunctions2, dest, TagDiffSubproblem9)
+            commMpi->usend(boundDisjunctions->idxBoundDisjunctionVars[0], 1, datatypeBoundDisjunctions2, dest, TagDiffSubproblem11)
       );
 
       MPI_CALL(
@@ -1674,7 +1908,7 @@ ScipParaDiffSubproblemMpi::send(ParaComm *comm, int dest)
          MPI_Type_commit( &datatypeVarBranchStats )
       );
       PARA_COMM_CALL(
-            commMpi->usend(&(varBranchStats->offset), 1, datatypeVarBranchStats, dest, TagDiffSubproblem10)
+            commMpi->usend(&(varBranchStats->offset), 1, datatypeVarBranchStats, dest, TagDiffSubproblem12)
       );
 
       MPI_CALL(
@@ -1690,7 +1924,7 @@ ScipParaDiffSubproblemMpi::send(ParaComm *comm, int dest)
          MPI_Type_commit( &datatypeVarValueVars1 )
       );
       PARA_COMM_CALL(
-            commMpi->usend(&(varValues->nVarValues), 1, datatypeVarValueVars1, dest, TagDiffSubproblem11)
+            commMpi->usend(&(varValues->nVarValues), 1, datatypeVarValueVars1, dest, TagDiffSubproblem13)
       );
 
       MPI_CALL(
@@ -1703,7 +1937,7 @@ ScipParaDiffSubproblemMpi::send(ParaComm *comm, int dest)
          MPI_Type_commit( &datatypeBoundDisjunctions2 )
       );
       PARA_COMM_CALL(
-            commMpi->usend(&nVarValueVars, 1, datatypeBoundDisjunctions2, dest, TagDiffSubproblem12)
+            commMpi->usend(&nVarValueVars, 1, datatypeBoundDisjunctions2, dest, TagDiffSubproblem14)
       );
 
       MPI_CALL(
@@ -1833,6 +2067,35 @@ ScipParaDiffSubproblemMpi::receive(ParaComm *comm, int source)
       );
    }
 
+   if( nBendersLinearConss > 0 )
+   {
+      MPI_Datatype datatypeBendersLinearConss1;
+      datatypeBendersLinearConss1 = createDatatypeBendersLinearConss1(true);
+      MPI_CALL(
+         MPI_Type_commit( &datatypeBendersLinearConss1 )
+      );
+      PARA_COMM_CALL(
+            commMpi->ureceive(bendersLinearConss->linearLhss, 1, datatypeBendersLinearConss1, source, TagDiffSubproblem8)
+      );
+
+      MPI_CALL(
+         MPI_Type_free( &datatypeBendersLinearConss1 )
+      );
+
+      MPI_Datatype datatypeBendersLinearConss2;
+      datatypeBendersLinearConss2 = createDatatypeBendersLinearConss2(true);
+      MPI_CALL(
+         MPI_Type_commit( &datatypeBendersLinearConss2 )
+      );
+      PARA_COMM_CALL(
+            commMpi->ureceive(bendersLinearConss->linearCoefs[0], 1, datatypeBendersLinearConss2, source, TagDiffSubproblem9)
+      );
+
+      MPI_CALL(
+         MPI_Type_free( &datatypeBendersLinearConss2 )
+      );
+   }
+
    if( nBoundDisjunctions > 0 )
    {
       MPI_Datatype datatypeBoundDisjunctions1;
@@ -1841,7 +2104,7 @@ ScipParaDiffSubproblemMpi::receive(ParaComm *comm, int source)
          MPI_Type_commit( &datatypeBoundDisjunctions1 )
       );
       PARA_COMM_CALL(
-            commMpi->ureceive(&(boundDisjunctions->nTotalVarsBoundDisjunctions), 1, datatypeBoundDisjunctions1, source, TagDiffSubproblem8)
+            commMpi->ureceive(&(boundDisjunctions->nTotalVarsBoundDisjunctions), 1, datatypeBoundDisjunctions1, source, TagDiffSubproblem10)
       );
 
       MPI_CALL(
@@ -1854,7 +2117,7 @@ ScipParaDiffSubproblemMpi::receive(ParaComm *comm, int source)
          MPI_Type_commit( &datatypeBoundDisjunctions2 )
       );
       PARA_COMM_CALL(
-            commMpi->ureceive(boundDisjunctions->idxBoundDisjunctionVars[0], 1, datatypeBoundDisjunctions2, source, TagDiffSubproblem9)
+            commMpi->ureceive(boundDisjunctions->idxBoundDisjunctionVars[0], 1, datatypeBoundDisjunctions2, source, TagDiffSubproblem11)
       );
 
       MPI_CALL(
@@ -1870,7 +2133,7 @@ ScipParaDiffSubproblemMpi::receive(ParaComm *comm, int source)
          MPI_Type_commit( &datatypeVarBranchStats )
       );
       PARA_COMM_CALL(
-            commMpi->ureceive(&(varBranchStats->offset), 1, datatypeVarBranchStats, source, TagDiffSubproblem10)
+            commMpi->ureceive(&(varBranchStats->offset), 1, datatypeVarBranchStats, source, TagDiffSubproblem12)
       );
 
       MPI_CALL(
@@ -1886,7 +2149,7 @@ ScipParaDiffSubproblemMpi::receive(ParaComm *comm, int source)
          MPI_Type_commit( &datatypeVarValueVars1 )
       );
       PARA_COMM_CALL(
-            commMpi->ureceive(&(varValues->nVarValues), 1, datatypeVarValueVars1, source, TagDiffSubproblem11)
+            commMpi->ureceive(&(varValues->nVarValues), 1, datatypeVarValueVars1, source, TagDiffSubproblem13)
       );
 
       MPI_CALL(
@@ -1899,7 +2162,7 @@ ScipParaDiffSubproblemMpi::receive(ParaComm *comm, int source)
          MPI_Type_commit( &datatypeBoundDisjunctions2 )
       );
       PARA_COMM_CALL(
-            commMpi->ureceive(&nVarValueVars, 1, datatypeBoundDisjunctions2, source, TagDiffSubproblem12)
+            commMpi->ureceive(&nVarValueVars, 1, datatypeBoundDisjunctions2, source, TagDiffSubproblem14)
       );
 
       MPI_CALL(

@@ -1,67 +1,22 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(sources
-    soplex/changesoplex.cpp
-    soplex/clufactor.cpp
     soplex/clufactor_rational.cpp
     soplex/didxset.cpp
-    soplex/enter.cpp
     soplex/gzstream.cpp
     soplex/idxset.cpp
-    soplex/leave.cpp
     soplex/mpsinput.cpp
     soplex/nameset.cpp
     soplex/rational.cpp
     soplex/ratrecon.cpp
-    soplex/slufactor.cpp
     soplex/slufactor_rational.cpp
-    soplex/solvedbds.cpp
-    soplex/solverational.cpp
-    soplex/solvereal.cpp
-    soplex/spxautopr.cpp
-    soplex/spxbasis.cpp
-    soplex/spxboundflippingrt.cpp
-    soplex/spxbounds.cpp
-    soplex/spxchangebasis.cpp
-    soplex/spxdantzigpr.cpp
-    soplex/spxdefaultrt.cpp
     soplex/spxdefines.cpp
-    soplex/spxdesc.cpp
-    soplex/spxdevexpr.cpp
-    soplex/spxequilisc.cpp
-    soplex/spxfastrt.cpp
-    soplex/spxfileio.cpp
-    soplex/spxgeometsc.cpp
     soplex/spxgithash.cpp
-    soplex/spxharrisrt.cpp
-    soplex/spxhybridpr.cpp
     soplex/spxid.cpp
-    soplex/spxleastsqsc.cpp
     soplex/spxlpbase_rational.cpp
-    soplex/spxlpbase_real.cpp
-    soplex/spxmainsm.cpp
     soplex/spxout.cpp
-    soplex/spxparmultpr.cpp
-    soplex/spxquality.cpp
-    soplex/spxscaler.cpp
-    soplex/spxshift.cpp
-    soplex/spxsolve.cpp
-    soplex/spxsolver.cpp
-    soplex/spxstarter.cpp
-    soplex/spxsteeppr.cpp
-    soplex/spxsumst.cpp
-    soplex/spxvecs.cpp
-    soplex/spxvectorst.cpp
-    soplex/spxweightpr.cpp
-    soplex/spxweightst.cpp
-    soplex/spxwritestate.cpp
-    soplex/statistics.cpp
-    soplex/testsoplex.cpp
-    soplex/updatevector.cpp
     soplex/usertimer.cpp
-    soplex/validation.cpp
-    soplex/wallclocktimer.cpp
-    soplex.cpp)
+    soplex/wallclocktimer.cpp)
 
 set(headers
     soplex/array.h
@@ -77,8 +32,6 @@ set(headers
     soplex/didxset.h
     soplex/dsvectorbase.h
     soplex/dsvector.h
-    soplex/dvectorbase.h
-    soplex/dvector.h
     soplex/exceptions.h
     soplex/gzstream.h
     soplex/idlist.h
@@ -156,7 +109,14 @@ set(headers
     soplex/validation.h
     soplex/vectorbase.h
     soplex/vector.h
-    soplex/wallclocktimer.h)
+    soplex/dvector.h
+    soplex/wallclocktimer.h
+    )
+
+file(GLOB headers
+    ${headers}
+    soplex/*.hpp
+)
 
     # create soplex library with pic
     add_library(libsoplex-pic STATIC ${sources})
@@ -175,20 +135,24 @@ set_target_properties(libsoplex PROPERTIES
 add_dependencies(libsoplex soplex_update_githash)
 target_link_libraries(libsoplex ${libs})
 
-# create soplex binary using library without pic
-add_executable(soplex soplexmain.cpp)
-target_link_libraries(soplex libsoplex)
 
-if(CMAKE_BUILD_TYPE EQUAL "Debug")
-    find_package(Sanitizers)
-    add_sanitizers(soplex)
+if(BOOST)
+    # create soplex binary using library without pic
+    add_executable(soplex soplexmain.cpp)
+    target_link_libraries(soplex LINK_PUBLIC libsoplex ${Boost_LIBRARIES})
+
+    if(CMAKE_BUILD_TYPE EQUAL "Debug")
+        find_package(Sanitizers)
+        add_sanitizers(soplex)
+    endif()
+
+    add_executable(example EXCLUDE_FROM_ALL example.cpp)
+    target_link_libraries(example libsoplex)
+
+    # set the install rpath to the installed destination
+    set_target_properties(soplex PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 
-add_executable(example EXCLUDE_FROM_ALL example.cpp)
-target_link_libraries(example libsoplex)
-
-# set the install rpath to the installed destination
-set_target_properties(soplex PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 # on UNIX system the 'lib' prefix is automatically added
 set_target_properties(libsoplex PROPERTIES
     OUTPUT_NAME "soplex"
@@ -199,14 +163,22 @@ set_target_properties(libsoplex-pic PROPERTIES
 
 # install the header files of soplex
 install(FILES ${headers} DESTINATION include/soplex)
-install(FILES soplex.h DESTINATION include)
+install(FILES soplex.h soplex.hpp DESTINATION include)
 
+if(BOOST)
 # install the binary and the library to appropriate lcoations and add them to an export group
 install(TARGETS soplex libsoplex libsoplex-pic EXPORT soplex-targets
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         RUNTIME DESTINATION bin
         INCLUDES DESTINATION include)
+else()
+# install the the library to appropriate lcoations and add them to an export group
+install(TARGETS libsoplex libsoplex-pic EXPORT soplex-targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include)
+endif()
 
 # Add library targets to the build-tree export set
 export(TARGETS libsoplex libsoplex-pic

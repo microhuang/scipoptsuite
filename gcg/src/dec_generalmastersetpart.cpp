@@ -6,7 +6,7 @@
 /*                  of the branch-cut-and-price framework                    */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/* Copyright (C) 2010-2019 Operations Research, RWTH Aachen University       */
+/* Copyright (C) 2010-2020 Operations Research, RWTH Aachen University       */
 /*                         Zuse Institute Berlin (ZIB)                       */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -155,12 +155,12 @@ static DEC_DECL_PROPAGATESEEED(propagateSeeedGeneralmastersetpart)
    {
       cons = seeedPropagationData->seeedpool->getConsForIndex(seeed->getOpenconss()[i]);
       /** set open setpartitioning constraints to master */
-      if( GCGconsGetType(cons) == setpartitioning )
+      if( GCGconsGetType(scip, cons) == setpartitioning )
       {
          seeed->bookAsMasterCons(seeed->getOpenconss()[i]);
       }
       /** set constraints with the same nonnegative lhs and rhs to master */
-      else if(GCGconsGetType(cons) != logicor && GCGconsGetType(cons) != setcovering && GCGconsGetType(cons) != setpacking )
+      else if(GCGconsGetType(scip, cons) != logicor && GCGconsGetType(scip, cons) != setcovering && GCGconsGetType(scip, cons) != setpacking )
       {
          nvars = GCGconsGetNVars(scip, cons);
          vars = NULL;

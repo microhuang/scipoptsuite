@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -39,26 +39,26 @@ enum bound_type
    BOUND_ERROR = 0, BOUND_VALUE, BOUND_INFTY, BOUND_MINUS_INFTY
 };
 
-typedef enum bound_type          BoundType;
-typedef struct bound             Bound;
+typedef enum bound_type BoundType;
+typedef struct bound    Bound;
 
-/*lint -sem(        bound_new, @P > malloc(1P)) */
-extern Bound*       bound_new(BoundType type, const Numb* value);
-/*lint -sem(        bound_free, custodial(1), 1p == 1) */
-extern void         bound_free(Bound* bound);
-/*lint -sem(        bound_is_valid, 1p == 1) */
-extern bool         bound_is_valid(const Bound* bound);
-/*lint -sem(        bound_copy, 1p == 1, @P > malloc(1P)) */
-extern Bound*       bound_copy(const Bound* source);
-/*lint -sem(        bound_get_type, 1p == 1) */
-extern BoundType    bound_get_type(const Bound* bound);
-/*lint -sem(        bound_get_value, 1p == 1) */
-extern const Numb*  bound_get_value(const Bound* bound);
-/*lint -sem(        bound_print, 1p == 1 && 2p == 1) */
-extern void         bound_print(FILE* fp, const Bound* bound);
+//lint -sem(        bound_new, @P >= malloc(1)) 
+extern Bound*       bound_new(BoundType type, const Numb* value) returns_NONNULL;
+//lint -sem(        bound_free, custodial(1), inout(1), 1p == 1) 
+extern void         bound_free(Bound* bound) expects_NONNULL;
+//lint -sem(        bound_is_valid, 1p == 1) 
+extern bool         bound_is_valid(const Bound* bound) expects_NONNULL is_PURE;
+//lint -sem(        bound_copy, 1p == 1, @P >= malloc(1)) 
+extern Bound*       bound_copy(const Bound* source) expects_NONNULL returns_NONNULL;
+//lint -sem(        bound_get_type, 1p == 1) 
+extern BoundType    bound_get_type(const Bound* bound) expects_NONNULL is_PURE;
+//lint -sem(        bound_get_value, 1p == 1, @p == 1) 
+extern const Numb*  bound_get_value(const Bound* bound) expects_NONNULL returns_NONNULL is_PURE;
+//lint -sem(        bound_print, inout(1), 1p == 1, 2p == 1) 
+extern void         bound_print(FILE* fp, const Bound* bound) expects_NONNULL;
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _BOUND_H_ */
+#endif // _BOUND_H_ 
 

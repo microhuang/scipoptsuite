@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -54,6 +54,9 @@ public:
          int    inNTransferredLocalCuts,      /**< number of local cuts transferred from a ParaNode */
          int    inMinTransferredLocalCuts,    /**< minimum number of local cuts transferred from a ParaNode */
          int    inMaxTransferredLocalCuts,    /**< maximum number of local cuts transferred from a ParaNode */
+         int    inNTransferredBendersCuts,      /**< number of benders cuts transferred from a ParaNode */
+         int    inMinTransferredBendersCuts,    /**< minimum number of benders cuts transferred from a ParaNode */
+         int    inMaxTransferredBendersCuts,    /**< maximum number of benders cuts transferred from a ParaNode */
          int    inNRestarts,                  /**< number of restarts */
          double inMinIisum,                   /**< minimum sum of integer infeasibility */
          double inMaxIisum,                   /**< maximum sum of integer infeasibility */
@@ -64,6 +67,7 @@ public:
          : ParaCalculationState(inCompTime,inRootTime, inNSolved, inNSent,inNImprovedIncumbent,inTerminationState,inNSolvedWithNoPreprocesses,
                inNSimplexIterRoot, inAverageSimplexIter,
                inNTransferredLocalCuts, inMinTransferredLocalCuts, inMaxTransferredLocalCuts,
+               inNTransferredBendersCuts, inMinTransferredBendersCuts, inMaxTransferredBendersCuts,
                inNRestarts, inMinIisum, inMaxIisum, inMinNii, inMaxNii, inDualBound)
    {}
    /** destructor */

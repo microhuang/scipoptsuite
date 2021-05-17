@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -33,7 +33,7 @@ ParaCalculationStateMpi::createDatatype(
       )
 {
 
-   const int nBlocks = 18;
+   const int nBlocks = 21;
 
    MPI_Datatype datatype;
 
@@ -113,37 +113,53 @@ ParaCalculationStateMpi::createDatatype(
    displacements[11] = address - startAddress;
 
    MPI_CALL(
-      MPI_Get_address( &nRestarts, &address )
+      MPI_Get_address( &nTransferredBendersCuts, &address )
    );
    displacements[12] = address - startAddress;
 
    MPI_CALL(
-      MPI_Get_address( &minIisum, &address )
+      MPI_Get_address( &minTransferredBendersCuts, &address )
    );
    displacements[13] = address - startAddress;
-   types[13] = MPI_DOUBLE;
 
    MPI_CALL(
-      MPI_Get_address( &maxIisum, &address )
+      MPI_Get_address( &maxTransferredBendersCuts, &address )
    );
    displacements[14] = address - startAddress;
-   types[14] = MPI_DOUBLE;
+
 
    MPI_CALL(
-      MPI_Get_address( &minNii, &address )
+      MPI_Get_address( &nRestarts, &address )
    );
    displacements[15] = address - startAddress;
 
    MPI_CALL(
-      MPI_Get_address( &maxNii, &address )
+      MPI_Get_address( &minIisum, &address )
    );
    displacements[16] = address - startAddress;
+   types[16] = MPI_DOUBLE;
+
+   MPI_CALL(
+      MPI_Get_address( &maxIisum, &address )
+   );
+   displacements[17] = address - startAddress;
+   types[17] = MPI_DOUBLE;
+
+   MPI_CALL(
+      MPI_Get_address( &minNii, &address )
+   );
+   displacements[18] = address - startAddress;
+
+   MPI_CALL(
+      MPI_Get_address( &maxNii, &address )
+   );
+   displacements[19] = address - startAddress;
 
    MPI_CALL(
       MPI_Get_address( &dualBound, &address )
    );
-   displacements[17] = address - startAddress;
-   types[17] = MPI_DOUBLE;
+   displacements[20] = address - startAddress;
+   types[20] = MPI_DOUBLE;
 
    MPI_CALL(
          MPI_Type_create_struct(nBlocks, blockLengths, displacements, types, &datatype)

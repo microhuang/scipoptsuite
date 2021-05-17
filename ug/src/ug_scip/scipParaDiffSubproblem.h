@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -402,6 +402,10 @@ protected:
     * for local cuts and conflict cuts *
     * *********************************/
    ScipParaDiffSubproblemLinearCons *linearConss;   /**< point to linear constraint data */
+   /************************************
+    * for benders cuts                 *
+    * *********************************/
+   ScipParaDiffSubproblemLinearCons *bendersLinearConss;   /**< point to benders linear constraint data */
    /********************************
     * for conflicts                *
     * *****************************/
@@ -426,6 +430,7 @@ public:
            branchLinearConss(0),
            branchSetppcConss(0),
            linearConss(0),
+           bendersLinearConss(0),
            boundDisjunctions(0),
            varBranchStats(0),
            varValues(0)
@@ -453,6 +458,7 @@ public:
                branchLinearConss(0),
                branchSetppcConss(0),
                linearConss(0),
+               bendersLinearConss(0),
                boundDisjunctions(0),
                varBranchStats(0),
                varValues(0)
@@ -560,6 +566,31 @@ public:
          }
       }
 
+      if( diffSubproblem->bendersLinearConss )
+      {
+         bendersLinearConss = new ScipParaDiffSubproblemLinearCons();
+         bendersLinearConss->nLinearConss = diffSubproblem->bendersLinearConss->nLinearConss;
+         assert( bendersLinearConss->nLinearConss > 0 );
+         // std::cout << "bendersLinearConss->nLinearConss = " << bendersLinearConss->nLinearConss << std::endl;
+         bendersLinearConss->linearLhss = new SCIP_Real[bendersLinearConss->nLinearConss];
+         bendersLinearConss->linearRhss = new SCIP_Real[bendersLinearConss->nLinearConss];
+         bendersLinearConss->nLinearCoefs = new int[bendersLinearConss->nLinearConss];
+         bendersLinearConss->linearCoefs = new SCIP_Real*[bendersLinearConss->nLinearConss];
+         bendersLinearConss->idxLinearCoefsVars = new int*[bendersLinearConss->nLinearConss];
+         for( int c = 0; c < bendersLinearConss->nLinearConss; c++ )
+         {
+            bendersLinearConss->linearLhss[c] = diffSubproblem->bendersLinearConss->linearLhss[c];
+            bendersLinearConss->linearRhss[c] = diffSubproblem->bendersLinearConss->linearRhss[c];
+            bendersLinearConss->nLinearCoefs[c] = diffSubproblem->bendersLinearConss->nLinearCoefs[c];
+            bendersLinearConss->linearCoefs[c] = new SCIP_Real[bendersLinearConss->nLinearCoefs[c]];
+            bendersLinearConss->idxLinearCoefsVars[c] = new int[bendersLinearConss->nLinearCoefs[c]];
+            for( int v = 0; v < bendersLinearConss->nLinearCoefs[c]; v++ )
+            {
+               bendersLinearConss->linearCoefs[c][v] = diffSubproblem->bendersLinearConss->linearCoefs[c][v];
+               bendersLinearConss->idxLinearCoefsVars[c][v] = diffSubproblem->bendersLinearConss->idxLinearCoefsVars[c][v];
+            }
+         }
+      }
 
       if( diffSubproblem->boundDisjunctions )
       {
@@ -710,6 +741,10 @@ public:
       if( linearConss )
       {
          delete linearConss;
+      }
+      if( bendersLinearConss )
+      {
+         delete bendersLinearConss;
       }
       if( boundDisjunctions )
       {
@@ -863,6 +898,7 @@ public:
       }
    }
 
+
    SCIP_Real getLinearLhs(int i)
    {
       assert(linearConss);
@@ -891,6 +927,48 @@ public:
    {
       assert(linearConss);
       return linearConss->idxLinearCoefsVars[i][j];
+   }
+
+   int getNBendersLinearConss()
+   {
+      if( bendersLinearConss )
+      {
+         return bendersLinearConss->nLinearConss;
+      }
+      else
+      {
+         return 0;
+      }
+   }
+
+   SCIP_Real getBendersLinearLhs(int i)
+   {
+      assert(bendersLinearConss);
+      return bendersLinearConss->linearLhss[i];
+   }
+
+   SCIP_Real getBendersLinearRhs(int i)
+   {
+      assert(bendersLinearConss);
+      return bendersLinearConss->linearRhss[i];
+   }
+
+   int getNBendersLinearCoefs(int i)
+   {
+      assert(bendersLinearConss);
+      return bendersLinearConss->nLinearCoefs[i];
+   }
+
+   SCIP_Real getBendersLinearCoefs(int i, int j)
+   {
+      assert(bendersLinearConss);
+      return bendersLinearConss->linearCoefs[i][j];
+   }
+
+   int getIdxBendersLinearCoefsVars(int i, int j)
+   {
+      assert(bendersLinearConss);
+      return bendersLinearConss->idxLinearCoefsVars[i][j];
    }
 
    int getNBoundDisjunctions()
@@ -1289,6 +1367,15 @@ public:
       {
          s << ", nl: 0";
       }
+      if( bendersLinearConss )
+      {
+         s << ", bnl: " << bendersLinearConss->nLinearConss;
+      }
+      else
+      {
+         s << ", nl: 0";
+      }
+
 
       if ( boundDisjunctions )
       {

@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -33,6 +33,7 @@
 #endif
 #ifdef _COMM_CPP11
 #include <thread>
+#include <cstdlib>
 #endif
 #include <signal.h>
 #include "ug/paraInstance.h"
@@ -105,7 +106,17 @@ void interruptHandler(
 
    interrupted = true;
 
+#ifdef _COMM_PTH
    _exit(1);
+#endif
+#ifdef _COMM_PTH
+#ifdef __APPLE__
+   _exit(1);
+#else
+   std::quick_exit(1);
+#endif
+#endif
+
 }
 
 void
@@ -308,6 +319,9 @@ runSolverThread(
 
    // ULIBC_unbind_thread();
 
+#ifdef _COMM_PTH
+   pthread_exit(NULL);
+#endif
    return 0;
 }
 
@@ -333,7 +347,9 @@ runTimeLimitMonitorThread(
    delete monitor;
 
    // ULIBC_unbind_thread();
-
+#ifdef _COMM_PTH
+   pthread_exit(NULL);
+#endif
    return 0;
 }
 
@@ -656,6 +672,14 @@ main (
 #endif
 
    // ULIBC_unbind_thread();
-
+#ifdef _COMM_PTH
    _exit(0);
+#endif
+#ifdef _COMM_CPP11
+#ifdef __APPLE__
+   _exit(0);
+#else
+   std::quick_exit(0);
+#endif
+#endif
 } /* END main */

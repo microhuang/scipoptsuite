@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -38,33 +38,33 @@ typedef struct tuple Tuple;
 
 #define TUPLE_NULL ((Tuple*)0)
 
-/*lint -sem(        tuple_new, 1n >= 0, @P > malloc(1P)) */
-extern Tuple*       tuple_new(int dim);
-/*lint -sem(        tuple_free, custodial(1), 1p == 1) */
-extern void         tuple_free(Tuple* tuple);
-/*lint -sem(        tuple_is_valid, 1p == 1) */
-extern bool         tuple_is_valid(const Tuple* tuple);
-/*lint -sem(        tuple_copy, 1p == 1, @P > malloc(1P)) */
-extern Tuple*       tuple_copy(const Tuple* tuple);
-/*lint -sem(        tuple_cmp, 1p == 1 && 2p == 1) */
-extern bool         tuple_cmp(const Tuple* tuple_a, const Tuple* tuple_b);
-/*lint -sem(        tuple_get_dim, 1p == 1, @n > 0) */
-extern int          tuple_get_dim(const Tuple* tuple);
-/*lint -sem(        tuple_set_elem, custodial(3), 1p == 1 && 2n >= 0 && 3p == 1) */
-extern void         tuple_set_elem(Tuple* tuple, int idx, Elem* elem);
-/*lint -sem(        tuple_get_elem, 1p == 1 && 2n >= 0, @P > malloc(1P)) */
-extern const Elem*  tuple_get_elem(const Tuple* tuple, int idx);
-/*lint -sem(        tuple_combine, 1p == 1 && 2p == 1, @P > malloc(1P)) */
-extern Tuple*       tuple_combine(const Tuple* ta, const Tuple* tb);
-/*lint -sem(        tuple_print, 1p == 1 && 2p == 1) */
-extern void         tuple_print(FILE* fp, const Tuple* tuple);
-/*lint -sem(        tuple_hash, 1p == 1) */
-extern unsigned int tuple_hash(const Tuple* tuple);
-/*lint -sem(        tuple_tostr, 1p == 1, @P > malloc(1P) && nulterm(@)) */
-extern char*        tuple_tostr(const Tuple* tuple);
+//lint -sem(        tuple_new, chneg(1), @P >= malloc(1)) 
+extern Tuple*       tuple_new(int dim) returns_NONNULL;
+//lint -sem(        tuple_free, custodial(1), inout(1), 1p == 1) 
+extern void         tuple_free(Tuple* tuple) expects_NONNULL;
+//lint -sem(        tuple_is_valid, pure, 1p == 1) 
+extern bool         tuple_is_valid(const Tuple* tuple) expects_NONNULL is_PURE;
+//lint -sem(        tuple_copy, 1p == 1, @P >= malloc(1)) 
+extern Tuple*       tuple_copy(const Tuple* tuple) expects_NONNULL returns_NONNULL;
+//lint -sem(        tuple_cmp, 1p == 1 && 2p == 1) 
+   extern bool         tuple_cmp(const Tuple* tuple_a, const Tuple* tuple_b) expects_NONNULL;
+//lint -sem(        tuple_get_dim, pure, 1p == 1, chneg(@)) 
+extern int          tuple_get_dim(const Tuple* tuple) expects_NONNULL is_PURE;
+//lint -sem(        tuple_set_elem, custodial(3), 1p == 1, chneg(2), 3p == 1) 
+extern void         tuple_set_elem(Tuple* tuple, int idx, Elem* elem) expects_NONNULL;
+//lint -sem(        tuple_get_elem, 1p == 1, chneg(2), @p == 1) 
+extern const Elem*  tuple_get_elem(const Tuple* tuple, int idx) expects_NONNULL returns_NONNULL is_PURE;
+//lint -sem(        tuple_combine, 1p == 1, 2p == 1, @P >= malloc(1)) 
+extern Tuple*       tuple_combine(const Tuple* ta, const Tuple* tb) expects_NONNULL returns_NONNULL;
+//lint -sem(        tuple_print, 1p == 1, 2p == 1) 
+extern void         tuple_print(FILE* fp, const Tuple* tuple) expects_NONNULL;
+//lint -sem(        tuple_hash, pure, 1p == 1) 
+extern unsigned int tuple_hash(const Tuple* tuple) expects_NONNULL is_PURE;
+//lint -sem(        tuple_tostr, 1p == 1, @P >= malloc(1)) 
+extern char*        tuple_tostr(const Tuple* tuple) expects_NONNULL returns_NONNULL;
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _TUPLE_H_ */
+#endif // _TUPLE_H_ 
 

@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -23,7 +23,6 @@
 
 #include "soplex/spxdefines.h"
 #include "soplex/timerfactory.h"
-#include "soplex/dvector.h"
 #include "soplex/slinsolver_rational.h"
 #include "soplex/clufactor_rational.h"
 #include "soplex/rational.h"
@@ -61,7 +60,7 @@ private:
    //--------------------------------
    /**@name Private data */
    ///@{
-   DVectorRational    vec;           ///< Temporary vector
+   VectorRational    vec;           ///< Temporary vector
    SSVectorRational   ssvec;         ///< Temporary semi-sparse vector
    ///@}
 
@@ -71,7 +70,7 @@ protected:
    /**@name Protected data */
    ///@{
    bool       usetup;             ///< TRUE iff update vector has been setup
-   UpdateType uptype;             ///< the current \ref soplex::SLUFactor::UpdateType "UpdateType".
+   UpdateType uptype;             ///< the current \ref soplex::SLUFactor<R>::UpdateType "UpdateType".
    SSVectorRational   eta;        ///<
    SSVectorRational
    forest;     ///< ? Update vector set up by solveRight4update() and solve2right4update()

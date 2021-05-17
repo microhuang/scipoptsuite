@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,9 +26,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <sys/types.h>
+//#include <assert.h>
 
 #ifdef WITH_PCRE
 #include <pcre2posix.h>
@@ -36,16 +37,13 @@
 #include <regex.h>
 #endif
 
-#ifndef _lint
 #ifndef WITHOUT_ZLIB
 #include <zlib.h>
 #endif
-#else
-#include "zimpl/lint.h"
-#endif /* _lint */
 
-#include <stdbool.h>
+#include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
 #include "zimpl/elem.h"
@@ -360,7 +358,7 @@ static int parse_pattern(
    return params;
 }
 
-/*lint -sem(split_fields, nulterm(1), 1p && 2n >= 0 && 2n < MAX_FIELDS && 3p, @n >= 0) */
+//lint -sem(split_fields, 1p, chneg(2), 2n < MAX_FIELDS, 3p, @n >= 0)
 static int split_fields(char* s, int hi_field_no, char* field[])
 {
    char* t = s;

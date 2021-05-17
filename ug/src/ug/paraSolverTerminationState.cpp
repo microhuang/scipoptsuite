@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -98,6 +98,16 @@ ParaSolverTerminationState::toString(
       if( nTransferredLocalCutsFromSolver > 0 )
       {
          os << ", Min = " << minTransferredLocalCutsFromSolver << ", Max = " << maxTransferredLocalCutsFromSolver << " )"<< std::endl;
+      }
+      else
+      {
+         os << ", Min = 0, Max = 0 )" << std::endl;
+      }
+      os << "#=== Total number of benders cuts sent from this solver = " << nTransferredBendersCutsFromSolver
+            << "( / Subtree : Mean = " << nTransferredBendersCutsFromSolver/nParaNodesSolved;
+      if( nTransferredBendersCutsFromSolver > 0 )
+      {
+         os << ", Min = " << minTransferredBendersCutsFromSolver << ", Max = " << maxTransferredBendersCutsFromSolver << " )"<< std::endl;
       }
       else
       {

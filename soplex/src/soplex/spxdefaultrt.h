@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -39,7 +39,8 @@ namespace soplex
 
    See SPxRatioTester for a class documentation.
 */
-class SPxDefaultRT : public SPxRatioTester
+template <class R>
+class SPxDefaultRT : public SPxRatioTester<R>
 {
 public:
 
@@ -48,18 +49,18 @@ public:
    ///@{
    /// default constructor
    SPxDefaultRT()
-      : SPxRatioTester("Default")
+      : SPxRatioTester<R>("Default")
    {}
    /// copy constructor
    SPxDefaultRT(const SPxDefaultRT& old)
-      : SPxRatioTester(old)
+      : SPxRatioTester<R>(old)
    {}
    /// assignment operator
    SPxDefaultRT& operator=(const SPxDefaultRT& rhs)
    {
       if(this != &rhs)
       {
-         SPxRatioTester::operator=(rhs);
+         SPxRatioTester<R>::operator=(rhs);
       }
 
       return *this;
@@ -68,7 +69,7 @@ public:
    virtual ~SPxDefaultRT()
    {}
    /// clone function for polymorphism
-   inline virtual SPxRatioTester* clone() const
+   inline virtual SPxRatioTester<R>* clone() const
    {
       return new SPxDefaultRT(*this);
    }
@@ -78,10 +79,13 @@ public:
    /**@name Select enter/leave */
    ///@{
    ///
-   virtual int selectLeave(Real& val, Real, bool);
+   virtual int selectLeave(R& val, R, bool);
    ///
-   virtual SPxId selectEnter(Real& val, int, bool);
+   virtual SPxId selectEnter(R& val, int, bool);
 };
 
 } // namespace soplex
+
+#include "spxdefaultrt.hpp"
+
 #endif // _SPXDEFAULTRT_H_

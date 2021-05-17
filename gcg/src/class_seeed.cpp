@@ -6,7 +6,7 @@
 /*                  of the branch-cut-and-price framework                    */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/* Copyright (C) 2010-2019 Operations Research, RWTH Aachen University       */
+/* Copyright (C) 2010-2020 Operations Research, RWTH Aachen University       */
 /*                         Zuse Institute Berlin (ZIB)                       */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -5288,7 +5288,7 @@ SCIP_Real Seeed::getScore(
    {
       SCIP_CONS* cons;
       cons = getSeeedpool()->getScipCons(getMasterconss()[mc]);
-      if( GCGconsGetType(cons) == consType::indicator )
+      if( GCGconsGetType(scip, cons) == consType::indicator )
          return 0.;
    }
 

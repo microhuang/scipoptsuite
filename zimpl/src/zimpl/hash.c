@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,10 +27,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-
 #include <stdbool.h>
+//#include <assert.h>
+
+#include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/blkmem.h"
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
@@ -78,6 +80,7 @@ struct hash
 
 static void hash_statist(FILE* fp, const Hash* hash);
 
+is_PURE
 static bool hash_is_valid(const Hash* hash)
 {
    return ((hash != NULL)
@@ -222,7 +225,7 @@ void hash_add_mono(Hash* hash, const Mono* mono)
 bool hash_has_tuple(const Hash* hash, const Tuple* tuple)
 {
    unsigned int hcode = tuple_hash(tuple) % hash->size;
-   HElem*       he;
+   const HElem* he;
    
    assert(hash_is_valid(hash));
    assert(tuple_is_valid(tuple));
@@ -237,7 +240,7 @@ bool hash_has_tuple(const Hash* hash, const Tuple* tuple)
 bool hash_has_entry(const Hash* hash, const Tuple* tuple)
 {
    unsigned int hcode = tuple_hash(tuple) % hash->size;
-   HElem*       he;
+   const HElem* he;
    
    assert(hash_is_valid(hash));
    assert(tuple_is_valid(tuple));
@@ -252,7 +255,7 @@ bool hash_has_entry(const Hash* hash, const Tuple* tuple)
 bool hash_has_numb(const Hash* hash, const Numb* numb)
 {
    unsigned int hcode = numb_hash(numb) % hash->size;
-   HElem*       he;
+   const HElem* he;
    
    assert(hash_is_valid(hash));
    assert(numb_is_valid(numb));
@@ -269,7 +272,7 @@ bool hash_has_numb(const Hash* hash, const Numb* numb)
 const Entry* hash_lookup_entry(const Hash* hash, const Tuple* tuple)
 {
    unsigned int hcode = tuple_hash(tuple) % hash->size;
-   HElem*       he;
+   const HElem* he;
    
    assert(hash_is_valid(hash));
    assert(tuple_is_valid(tuple));
@@ -293,7 +296,7 @@ const Entry* hash_lookup_entry(const Hash* hash, const Tuple* tuple)
 const Mono* hash_lookup_mono(const Hash* hash, const Mono* mono)
 {
    unsigned int hcode = mono_hash(mono) % hash->size;
-   HElem*       he;
+   const HElem* he;
    
    assert(hash_is_valid(hash));
    assert(mono_is_valid(mono));
@@ -334,7 +337,7 @@ void hash_add_elem_idx(Hash* hash, const Elem* elem, int idx)
 int hash_lookup_elem_idx(const Hash* hash, const Elem* elem)
 {
    unsigned int hcode = elem_hash(elem) % hash->size;
-   HElem*       he;
+   const HElem* he;
    
    assert(hash_is_valid(hash));
    assert(elem_is_valid(elem));

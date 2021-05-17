@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -39,13 +39,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <stdbool.h>
+//#include <assert.h>
 
 #include <gmp.h>
-#include <stdbool.h>
 
 #include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
 #include "zimpl/elem.h"
@@ -252,7 +253,7 @@ bool xlp_addcon_term(
       lps_setlhs(con, tlhs);
       break;
    case CON_EQUAL : /* In case of EQUAL, both should be equal */
-      assert(mpq_equal(tlhs, trhs));
+      assert(mpq_equal(tlhs, trhs) != 0);
       /*lint -fallthrough*/
    case CON_RANGE :
       lps_setlhs(con, tlhs);

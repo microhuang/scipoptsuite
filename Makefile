@@ -3,7 +3,7 @@
 #*                  This file is part of the program and library             *
 #*         SCIP --- Solving Constraint Integer Programs                      *
 #*                                                                           *
-#*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            *
+#*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            *
 #*                            fuer Informationstechnik Berlin                *
 #*                                                                           *
 #*  SCIP is distributed under the terms of the ZIB Academic Licence.         *
@@ -21,7 +21,7 @@
 #@author  Matthias Miltenberger
 
 # version of the SCIP Optimization Suite
-OPTSUITEVERSION = 6.0.2
+OPTSUITEVERSION=$(egrep "^SCIP_VERSION" scip/make/make.project|grep -o '[0-9].*[0-9]')
 
 TAR		=	tar
 
@@ -36,6 +36,7 @@ SOPLEXDIR	=	$(BASEDIR)/soplex
 ZIMPLDIR	=	$(BASEDIR)/zimpl
 GCGDIR		=	$(BASEDIR)/gcg
 UGDIR		=	$(BASEDIR)/ug
+PAPILODIR	=	$(BASEDIR)/papilo
 
 OPT		=	opt
 LPSOPT		=	opt
@@ -43,8 +44,9 @@ ZIMPL		=	true
 ZIMPLOPT	=	opt
 IPOPT		=	false
 SYM		=	none
+PAPILO		=	false
 
-GTEST	=	false
+GTEST		=	false
 
 SPX_LEGACY	=	false
 LEGACY		= 	false
@@ -80,10 +82,10 @@ test:
 
 .PHONY:		scipbinary
 scipbinary:	$(SOPLEXDIR) $(ZIMPLDIR) $(SCIPDIR)
-		@$(MAKE) -f Makefile.doit SCIPDIR=$(SCIPDIR) SOPLEXDIR=$(SOPLEXDIR) ZIMPL=$(ZIMPL) ZIMPLDIR=$(ZIMPLDIR) SPX_LEGACY=$(SPX_LEGACY)
+		@$(MAKE) -f Makefile.doit SCIPDIR=$(SCIPDIR) SOPLEXDIR=$(SOPLEXDIR) ZIMPL=$(ZIMPL) PAPILO=$(PAPILO) ZIMPLDIR=$(ZIMPLDIR) PAPILODIR=$(PAPILODIR) SPX_LEGACY=$(SPX_LEGACY)
 
 .PHONY:		scipoptlib
-scipoptlib:	$(LIBDIR) $(LIBOBJDIR) $(LIBOBJZIMPLDIR) $(LIBOBJSUBDIRS) $(SOPLEXDIR) $(ZIMPLDIR) $(SCIPDIR)
+scipoptlib:	$(LIBDIR) $(LIBOBJDIR) $(LIBOBJZIMPLDIR) $(LIBOBJSUBDIRS) $(SOPLEXDIR) $(ZIMPLDIR) $(SCIPDIR) $(PAPILODIR)
 ifeq ($(SHARED),true)
 		@echo "** compile shared libraries with compiler flag -fPIC"
 else
@@ -93,7 +95,7 @@ ifneq ($(ZIMPL),false)
 		@$(MAKE) -C $(ZIMPLDIR) clean SHARED=$(SHARED) OPT=$(ZIMPLOPT)
 endif
 		@$(MAKE) scipbinary SHARED=$(SHARED) IPOPT=$(IPOPT) SPX_LEGACY=$(SPX_LEGACY)
-		@$(MAKE) -f Makefile.doit $@ VERSION=$(OPTSUITEVERSION) SCIPDIR=$(SCIPDIR) SOPLEXDIR=$(SOPLEXDIR) ZIMPL=$(ZIMPL) ZIMPLDIR=$(ZIMPLDIR)
+		@$(MAKE) -f Makefile.doit $@ VERSION=$(OPTSUITEVERSION) SCIPDIR=$(SCIPDIR) SOPLEXDIR=$(SOPLEXDIR) ZIMPL=$(ZIMPL) PAPILO=$(PAPILO) ZIMPLDIR=$(ZIMPLDIR) PAPILODIR=$(PAPILODIR)
 
 .PHONY:		install
 install:	scipoptlib
@@ -111,7 +113,7 @@ testsoplex:		$(SOPLEXDIR)
 
 .PHONY:		gcg
 gcg:		$(SOPLEXDIR) $(ZIMPLDIR) $(SCIPDIR) $(GCGDIR)
-		@$(MAKE) -f Makefile.doit gcg SCIPDIR=$(SCIPDIR) SOPLEXDIR=$(SOPLEXDIR) ZIMPL=$(ZIMPL) ZIMPLDIR=$(ZIMPLDIR) GCGDIR=$(GCGDIR) SPX_LEGACY=$(SPX_LEGACY) GTEST=${GTEST}
+		@$(MAKE) -f Makefile.doit gcg SCIPDIR=$(SCIPDIR) SOPLEXDIR=$(SOPLEXDIR) ZIMPL=$(ZIMPL) PAPILO=$(PAPILO) ZIMPLDIR=$(ZIMPLDIR) PAPILODIR=$(PAPILODIR) GCGDIR=$(GCGDIR) SPX_LEGACY=$(SPX_LEGACY) GTEST=${GTEST}
 
 .PHONY:		testgcg
 testgcg:
@@ -119,7 +121,7 @@ testgcg:
 
 .PHONY:		ug
 ug:		$(SOPLEXDIR) $(ZIMPLDIR) $(SCIPDIR) $(UGDIR)
-		@$(MAKE) -f Makefile.doit ug SCIPDIR=$(SCIPDIR) SOPLEXDIR=$(SOPLEXDIR) ZIMPL=$(ZIMPL) ZIMPLDIR=$(ZIMPLDIR) UGDIR=$(UGDIR) PARASCIP=true SPX_LEGACY=$(SPX_LEGACY)
+		@$(MAKE) -f Makefile.doit ug SCIPDIR=$(SCIPDIR) SOPLEXDIR=$(SOPLEXDIR) ZIMPL=$(ZIMPL) PAPILO=$(PAPILO) ZIMPLDIR=$(ZIMPLDIR) PAPILODIR=$(PAPILODIR) UGDIR=$(UGDIR) PARASCIP=true SPX_LEGACY=$(SPX_LEGACY)
 
 .PHONY:		testug
 testug:

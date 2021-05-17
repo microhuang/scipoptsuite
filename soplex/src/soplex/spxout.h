@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -212,7 +212,7 @@ private:
     extracts the verbosity level from the struct and passes it to the
     member function SPxOut::setVerbosity().
 */
-///@{
+//@{
 /// manipulator to be used in an output statement
 inline SPxOut::struct_Verbosity
 verb(const SPxOut::Verbosity&  v)
@@ -240,29 +240,74 @@ operator<< (SPxOut& stream,
  * other. When using only a template type, it is not clear what the
  * compiler makes out of it (according to lint).
  */
-///@{
+//@{
 ///
-#define PASS_TO_CURRENT_OSTREAM( t ) \
-      _spxout.getCurrentStream() << t; \
-      return _spxout;
-
 /// Passes instances of type \p Type to the current stream.
-#define DEFINE_OUTPUT_OPERATOR( Type ) \
-   inline SPxOut& \
-   operator<< ( SPxOut& _spxout, Type t ) \
-   { PASS_TO_CURRENT_OSTREAM( t ) }
+inline SPxOut& operator<< (SPxOut& _spxout, long t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
 
-DEFINE_OUTPUT_OPERATOR(long)
-DEFINE_OUTPUT_OPERATOR(unsigned long)
-DEFINE_OUTPUT_OPERATOR(bool)
-DEFINE_OUTPUT_OPERATOR(short)
-DEFINE_OUTPUT_OPERATOR(unsigned short)
-DEFINE_OUTPUT_OPERATOR(int)
-DEFINE_OUTPUT_OPERATOR(unsigned int)
-DEFINE_OUTPUT_OPERATOR(double)
-DEFINE_OUTPUT_OPERATOR(float)
-DEFINE_OUTPUT_OPERATOR(long double)
-DEFINE_OUTPUT_OPERATOR(const void*)
+inline SPxOut& operator<< (SPxOut& _spxout, unsigned long t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, bool t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, short t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, unsigned short t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, int t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, unsigned int t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, double t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, float t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, long double t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
+
+inline SPxOut& operator<< (SPxOut& _spxout, const void* t)
+{
+   _spxout.getCurrentStream() << t;
+   return _spxout;
+}
 
 /// Passes standard manipulators without arguments, like @c std::endl
 /// or @c std::ios::right to the current stream.
@@ -270,20 +315,21 @@ inline SPxOut&
 operator<< (SPxOut&       _spxout,
             std::ostream & (*manip)(std::ostream&))
 {
-   PASS_TO_CURRENT_OSTREAM(manip)
+   _spxout.getCurrentStream() << manip;
+   return _spxout;
 }
 
 //lint -e{818} (pointer could be made const; this is ok.)
 /// Passes everything else to the current stream. In particular,
 /// this includes structs corresponding to manipulators with arguments,
 /// such as the struct @c _Setw for the @c setw() manipulator.
-template< typename T >
-inline SPxOut&
-operator<< (SPxOut& _spxout, T  t)
+template <typename T>
+inline SPxOut& operator<< (SPxOut& _spxout, T  t)
 {
-   PASS_TO_CURRENT_OSTREAM(t)
+   _spxout.getCurrentStream() << t;
+   return _spxout;
 }
-///@}
+//@}
 
 }  // namespace soplex
 

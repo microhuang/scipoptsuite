@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2003-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2003-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,11 +27,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <assert.h>
+#include <stdbool.h>
+//#include <assert.h>
 
 #include <gmp.h>
 
-#include <stdbool.h>
+#include "zimpl/lint.h"
 #include "zimpl/mshell.h"
 
 #include "zimpl/gmpmisc.h"
@@ -91,12 +92,12 @@ static void* pool_alloc(void)
    elem      = pool_next;
    pool_next = elem->next;
 
-   return elem;
+   return elem; //lint !e636 strong type difference
 }
 
 static void pool_free(void* pv)
 {
-   PoolElem* elem = pv;
+   PoolElem* elem = pv; //lint !e636 strong type difference
 
    elem->next = pool_next;
    pool_next  = elem;

@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2005-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2005-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,20 +30,20 @@
 extern "C" {
 #endif
 
-/*lint -sem(        zpl_add_parameter, 1p >= 1) */
-extern void         zpl_add_parameter(const char* def);
-/*lint -sem(        zpl_var_print, 1p == 1 && 2p == 1) */
-extern void         zpl_var_print(FILE* fp, const Var* var);
-/*lint -sem(        zpl_print_banner, 1p == 1) */
-extern void         zpl_print_banner(FILE* fp, bool with_license);
+//lint -sem(        zpl_add_parameter, 1p) 
+extern void         zpl_add_parameter(const char* def) expects_NONNULL;
+//lint -sem(        zpl_var_print, inout(1), 1p == 1, 2p == 1) 
+extern void         zpl_var_print(FILE* fp, const Var* var) expects_NONNULL;
+//lint -sem(        zpl_print_banner, inout(1), 1p == 1) 
+extern void         zpl_print_banner(FILE* fp, bool with_license) expects_NONNULL;
 
-/*lint -sem(        zpl_read, 1p >= 1) */
-extern bool         zpl_read(const char* filename, bool with_management, void* user_data);
-/*lint -sem(        zpl_read_with_args, 1p >= 2n && 2n > 0) */
-extern bool         zpl_read_with_args(char** argv, int argc, bool with_management, void* user_data);
+//lint -sem(        zpl_read, 1p) 
+extern bool         zpl_read(const char* filename, bool with_management, void* user_data) expects_NONNULL1;
+//lint -sem(        zpl_read_with_args, 1p >= 2n, 2n > 0) 
+extern bool         zpl_read_with_args(char** argv, int argc, bool with_management, void* user_data) expects_NONNULL1;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _ZIMPL_LIB_H_ */
+#endif // _ZIMPL_LIB_H_ 

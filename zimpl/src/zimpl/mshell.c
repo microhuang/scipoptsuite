@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2003-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2003-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -32,22 +32,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
+#include <stdbool.h>
+//#include <assert.h>
 
 #include "zimpl/lint.h"
 
 #define _MSHELL_C_
 
 #include "zimpl/mshell.h"
-
-#if defined(__GNUC__) || defined(__CLANG__)
-#define UNUSED __attribute__ ((unused))
-#define NORETURN __attribute__ ((noreturn))
-#else
-#define UNUSED
-#define NORETURN
-#endif /* __GNUC__ || __CLANG__ */
 
 #if !defined(NO_MSHELL) 
 

@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -69,7 +69,7 @@ public:
    /** Construct LPColBase with a column vector ready for taking \p defDim nonzeros.
     */
    explicit LPColBase<R>(int defDim = 0)
-      : up(infinity), low(0), object(0), vec(defDim)
+      : up(R(infinity)), low(0), object(0), vec(defDim)
    {
       assert(isConsistent());
    }

@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -40,16 +40,19 @@ namespace soplex
          greenbe[ab] problems with the entering algorithm
          (row representation?).
 */
-class SPxDevexPR : public SPxPricer
+template <class R>
+class SPxDevexPR : public SPxPricer<R>
 {
 private:
 
    //-------------------------------------
    /**@name Data */
    ///@{
-   Real  last;           ///< penalty, selected at last iteration.
-   DataArray<IdxElement> prices;   ///< temporary array of precomputed pricing values
-   DataArray<IdxElement> pricesCo; ///< temporary array of precomputed pricing values
+   R  last;           ///< penalty, selected at last iteration.
+   Array<typename SPxPricer<R>::IdxElement>
+   prices;   ///< temporary array of precomputed pricing values
+   Array<typename SPxPricer<R>::IdxElement>
+   pricesCo; ///< temporary array of precomputed pricing values
    DIdxSet bestPrices;   ///< set of best pricing candidates
    DIdxSet bestPricesCo; ///< set of best pricing candidates
    bool refined;         ///< has a refinement step already been tried?
@@ -59,32 +62,32 @@ private:
    /**@name Private helpers */
    ///@{
    /// set entering/leaving algorithm
-   void setupWeights(SPxSolver::Type);
+   void setupWeights(typename SPxSolverBase<R>::Type);
    /// build up vector of pricing values for later use
-   int buildBestPriceVectorLeave(Real feastol);
+   int buildBestPriceVectorLeave(R feastol);
    /// internal implementation of SPxPricer::selectLeave()
-   int selectLeaveX(Real feastol, int start = 0, int incr = 1);
+   int selectLeaveX(R feastol, int start = 0, int incr = 1);
    /// implementation of sparse pricing in the leaving Simplex
-   int selectLeaveSparse(Real feastol);
+   int selectLeaveSparse(R feastol);
    /// implementation of hyper sparse pricing in the leaving Simplex
-   int selectLeaveHyper(Real feastol);
+   int selectLeaveHyper(R feastol);
    /// build up vector of pricing values for later use
-   SPxId buildBestPriceVectorEnterDim(Real& best, Real feastol);
-   SPxId buildBestPriceVectorEnterCoDim(Real& best, Real feastol);
+   SPxId buildBestPriceVectorEnterDim(R& best, R feastol);
+   SPxId buildBestPriceVectorEnterCoDim(R& best, R feastol);
    /// choose the best entering index among columns and rows but prefer sparsity
-   SPxId selectEnterX(Real tol);
+   SPxId selectEnterX(R tol);
    /// implementation of sparse pricing in the entering Simplex (slack variables)
-   SPxId selectEnterSparseDim(Real& best, Real feastol);
+   SPxId selectEnterSparseDim(R& best, R feastol);
    /// implementation of sparse pricing in the entering Simplex
-   SPxId selectEnterSparseCoDim(Real& best, Real feastol);
+   SPxId selectEnterSparseCoDim(R& best, R feastol);
    /// SPxPricer::selectEnter() in dense case (slack variabels)
-   SPxId selectEnterDenseDim(Real& best, Real feastol, int start = 0, int incr = 1);
+   SPxId selectEnterDenseDim(R& best, R feastol, int start = 0, int incr = 1);
    /// SPxPricer::selectEnter() in dense case
-   SPxId selectEnterDenseCoDim(Real& best, Real feastol, int start = 0, int incr = 1);
+   SPxId selectEnterDenseCoDim(R& best, R feastol, int start = 0, int incr = 1);
    /// implementation of hyper sparse pricing in the entering Simplex
-   SPxId selectEnterHyperDim(Real& best, Real feastol);
+   SPxId selectEnterHyperDim(R& best, R feastol);
    /// implementation of hyper sparse pricing in the entering Simplex
-   SPxId selectEnterHyperCoDim(Real& best, Real feastol);
+   SPxId selectEnterHyperCoDim(R& best, R feastol);
    ///@}
 
 public:
@@ -94,13 +97,13 @@ public:
    ///@{
    /// default constructor
    SPxDevexPR()
-      : SPxPricer("Devex")
+      : SPxPricer<R>("Devex")
       , last(0)
       , refined(false)
    {}
    /// copy constructor
    SPxDevexPR(const SPxDevexPR& old)
-      : SPxPricer(old)
+      : SPxPricer<R>(old)
       , last(old.last)
       , refined(false)
    {}
@@ -109,7 +112,7 @@ public:
    {
       if(this != &rhs)
       {
-         SPxPricer::operator=(rhs);
+         SPxPricer<R>::operator=(rhs);
          last = rhs.last;
       }
 
@@ -119,7 +122,7 @@ public:
    virtual ~SPxDevexPR()
    {}
    /// clone function for polymorphism
-   inline virtual SPxPricer* clone()  const
+   inline virtual SPxPricer<R>* clone()  const
    {
       return new SPxDevexPR(*this);
    }
@@ -129,11 +132,11 @@ public:
    /**@name Access / modification */
    ///@{
    /// sets the solver
-   virtual void load(SPxSolver* base);
+   virtual void load(SPxSolverBase<R>* base);
    /// set entering/leaving algorithm
-   virtual void setType(SPxSolver::Type);
+   virtual void setType(typename SPxSolverBase<R>::Type);
    /// set row/column representation
-   virtual void setRep(SPxSolver::Representation);
+   virtual void setRep(typename SPxSolverBase<R>::Representation);
    ///
    virtual int selectLeave();
    ///
@@ -157,4 +160,7 @@ public:
 };
 
 } // namespace soplex
+
+#include "spxdevexpr.hpp"
+
 #endif // _SPXDEVEXPR_H_

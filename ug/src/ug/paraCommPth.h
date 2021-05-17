@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -609,6 +609,9 @@ public:
                int    nTransferredLocalCuts,      /**< number of local cuts transferred from a ParaNode */
                int    minTransferredLocalCuts,    /**< minimum number of local cuts transferred from a ParaNode */
                int    maxTransferredLocalCuts,    /**< maximum number of local cuts transferred from a ParaNode */
+               int    nTransferredBendersCuts,    /**< number of benders cuts transferred from a ParaNode */
+               int    minTransferredBendersCuts,  /**< minimum number of benders cuts transferred from a ParaNode */
+               int    maxTransferredBendersCuts,  /**< maximum number of benders cuts transferred from a ParaNode */
                int    nRestarts,                  /**< number of restarts */
                double minIisum,                   /**< minimum sum of integer infeasibility */
                double maxIisum,                   /**< maximum sum of integer infeasibility */
@@ -657,6 +660,9 @@ public:
                int    nTransferredLocalCutsFromSolver,      /**< number of local cuts transferred from this Solver */
                int    minTransferredLocalCutsFromSolver,    /**< minimum number of local cuts transferred from this Solver  */
                int    maxTransferredLocalCutsFromSolver,    /**< maximum number of local cuts transferred from this Solver  */
+               int    nTransferredBendersCutsFromSolver,    /**< number of benders cuts transferred from this Solver */
+               int    minTransferredBendersCutsFromSolver,  /**< minimum number of benders cuts transferred from this Solver  */
+               int    maxTransferredBendersCutsFromSolver,  /**< maximum number of benders cuts transferred from this Solver  */
                int    nTotalRestarts,             /**< number of total restarts */
                int    minRestarts,                /**< minimum number of restarts */
                int    maxRestarts,                /**< maximum number of restarts */

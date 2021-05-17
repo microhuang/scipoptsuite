@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -1572,6 +1572,17 @@ ScipParaInstance::createProblem(
          {
             SCIP_CALL_ABORT( SCIPcopyConss(tempScip, scip, varmap, conssmap, TRUE, FALSE, &success) );
          }
+
+#if SCIP_APIVERSION > 39
+         if( success )
+         {
+            SCIP_Bool valid;
+
+            /* copy the Benders' decomposition plugins explicitly, because it requires the variable mapping hash map */
+            SCIP_CALL_ABORT( SCIPcopyBenders(tempScip, scip, NULL, TRUE, &valid) );
+         }
+#endif
+
          if( !success )
          {
             if( SCIPgetNConss(tempScip) > 0 )
@@ -1587,166 +1598,12 @@ ScipParaInstance::createProblem(
             exit(1);
          }
       }
-      /***
-      else
-      {
-         assert(nCopies == 2);
-         SCIP *tempScip2 = 0;
-         SCIP_CALL_ABORT( SCIPcreate(&tempScip2) );
-         SCIP_CALL_ABORT( SCIPsetIntParam(tempScip2,"timing/clocktype", 2) ); // always wall clock time
-
-         // SCIP_CALL_ABORT( SCIPfree(&scip) );
-         // SCIP_CALL_ABORT( SCIPcreate(&scip) );
-
-         //// include default SCIP plugins
-         // SCIP_CALL_ABORT( SCIPincludeDefaultPlugins(scip) );
-         //// user include plugins
-         // includeUserPlugins(scip);
-
-         //// copy all plugins and settings
-   #if SCIP_VERSION == 211 && SCIP_SUBVERSION == 0
-         SCIP_CALL_ABORT( SCIPcopyPlugins(tempScip, tempScip2, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-               TRUE, TRUE, TRUE, TRUE, &success) );
-   #else
-      #if SCIP_APIVERSION >= 17
-         SCIP_CALL_ABORT( SCIPcopyPlugins(tempScip, tempScip2, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-               TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, &success) );
-      #else
-         SCIP_CALL_ABORT( SCIPcopyPlugins(tempScip, tempScip2, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-               TRUE, TRUE, TRUE, TRUE, FALSE, &success) );
-      #endif
-   #endif
-         SCIP_CALL_ABORT( SCIPcopyParamSettings(tempScip, tempScip2) );
-
-         ///// create the variable mapping hash map
-         if( SCIPgetNVars(tempScip) > 0 )
-         {
-            SCIP_CALL_ABORT( SCIPhashmapCreate(&varmap, SCIPblkmem(tempScip2), SCIPgetNVars(tempScip)) );
-         }
-         if( SCIPgetNConss(tempScip) > 0 )
-         {
-            SCIP_CALL_ABORT( SCIPhashmapCreate(&conssmap, SCIPblkmem(tempScip2), SCIPgetNConss(tempScip)) );
-         }
-
-         ///// create problem in the target SCIP and copying the source original problem data
-         SCIP_CALL_ABORT( SCIPcopyProb(tempScip, tempScip2, varmap, conssmap, TRUE, probNameFromFileName) );
-         // delete [] temp;  // probNameFromFileName is in temp
-
-         ///// copy all variables and constraints
-         if( SCIPgetNVars(tempScip) > 0 )
-         {
-#if (SCIP_VERSION < 321 || ( SCIP_VERSION == 321 && SCIP_SUBVERSION < 2) )
-            SCIP_CALL_ABORT( SCIPcopyVars(tempScip, tempScip2, varmap, conssmap, TRUE) );
-#else
-            SCIP_CALL_ABORT( SCIPcopyVars(tempScip, tempScip2, varmap, conssmap, NULL, NULL, 0, TRUE) );
-#endif
-         }
-         if( SCIPgetNConss(tempScip) > 0 )
-         {
-            SCIP_CALL_ABORT( SCIPcopyConss(tempScip, tempScip2, varmap, conssmap, TRUE, FALSE, &success) );
-         }
-         if( !success )
-         {
-            if( SCIPgetNConss(tempScip) > 0 )
-            {
-               SCIPhashmapFree(&conssmap);
-            }
-            if( SCIPgetNVars(tempScip) > 0 )
-            {
-               SCIPhashmapFree(&varmap);
-            }
-            SCIPfree(&tempScip);
-            std::cerr << "Some constraint handler did not perform a valid copy. Cannot solve this instance." << std::endl;
-            exit(1);
-         }
-         else
-         {
-            if( SCIPgetNConss(tempScip) > 0 )
-            {
-               SCIPhashmapFree(&conssmap);
-            }
-            if( SCIPgetNVars(tempScip) > 0 )
-            {
-               SCIPhashmapFree(&varmap);
-            }
-            SCIPfree(&tempScip);
-         }
-
-         SCIP_CALL_ABORT( SCIPtransformProb(tempScip2));
-
-         //// second copy
-
-         // SCIP_CALL_ABORT( SCIPfree(&scip) );
-         // SCIP_CALL_ABORT( SCIPcreate(&scip) );
-
-         ///// include default SCIP plugins
-         // SCIP_CALL_ABORT( SCIPincludeDefaultPlugins(scip) );
-         ///// user include plugins
-         // includeUserPlugins(scip);
-
-         ///// copy all plugins and settings
-   #if SCIP_VERSION == 211 && SCIP_SUBVERSION == 0
-         SCIP_CALL_ABORT( SCIPcopyPlugins(tempScip2, scip, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-               TRUE, TRUE, TRUE, TRUE, &success) );
-   #else
-      #if SCIP_APIVERSION >= 17
-         SCIP_CALL_ABORT( SCIPcopyPlugins(tempScip2, scip, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-               TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, &success) );
-      #else
-         SCIP_CALL_ABORT( SCIPcopyPlugins(tempScip2, scip, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-               TRUE, TRUE, TRUE, TRUE, FALSE, &success) );
-      #endif
-   #endif
-         SCIP_CALL_ABORT( SCIPcopyParamSettings(tempScip2, scip) );
-
-         //// create the variable mapping hash map
-         if( SCIPgetNVars(tempScip2) > 0 )
-         {
-            SCIP_CALL_ABORT( SCIPhashmapCreate(&varmap, SCIPblkmem(scip), SCIPgetNVars(tempScip2)) );
-         }
-         if( SCIPgetNConss(tempScip2) > 0 )
-         {
-            SCIP_CALL_ABORT( SCIPhashmapCreate(&conssmap, SCIPblkmem(scip), SCIPgetNConss(tempScip2)) );
-         }
-
-         ///// create problem in the target SCIP and copying the source original problem data
-         SCIP_CALL_ABORT( SCIPcopyProb(tempScip2, scip, varmap, conssmap, TRUE, probNameFromFileName) );
-         delete [] temp;  // probNameFromFileName is in temp
-
-         ///// copy all variables and constraints
-         if( SCIPgetNVars(tempScip2) > 0 )
-         {
-#if (SCIP_VERSION < 321 || ( SCIP_VERSION == 321 && SCIP_SUBVERSION < 2) )
-            SCIP_CALL_ABORT( SCIPcopyVars(tempScip2, scip, varmap, conssmap, TRUE) );
-#else
-            SCIP_CALL_ABORT( SCIPcopyVars(tempScip2, scip, varmap, conssmap, NULL, NULL, 0, TRUE) );
-#endif
-         }
-         if( SCIPgetNConss(tempScip2) > 0 )
-         {
-            SCIP_CALL_ABORT( SCIPcopyConss(tempScip2, scip, varmap, conssmap, TRUE, FALSE, &success) );
-         }
-         if( !success )
-         {
-            if( SCIPgetNConss(tempScip2) > 0 )
-            {
-               SCIPhashmapFree(&conssmap);
-            }
-            if( SCIPgetNVars(tempScip2) > 0 )
-            {
-               SCIPhashmapFree(&varmap);
-            }
-            SCIPfree(&tempScip2);
-            std::cerr << "Some constraint handler did not perform a valid copy. Cannot solve this instance." << std::endl;
-            exit(1);
-         }
-         tempScip = tempScip2;
-      }
-      ***/
 
       nVars = SCIPgetNVars(tempScip);
       varIndexRange = nVars;
       int n = SCIPgetNVars(scip);
+
+      // std::cout << "nVars = " << nVars << ", varIndexRange = " << varIndexRange << ", n = " << n << std::endl;
 
       assert( nVars <= n );
       if( nVars < n )
@@ -1763,10 +1620,14 @@ ScipParaInstance::createProblem(
          mapToOriginalIndecies[i] = -1;
          mapToSolverLocalIndecies[i] = -1;
       }
+
+      assert(SCIPgetNTotalVars(scip) >= SCIPgetNVars(tempScip));
+
       // SCIP_VAR **srcVars = SCIPgetVars(tempScip);
       SCIP_VAR **srcVars = SCIPgetVars(tempScip);
       // SCIP_VAR **targetVars = SCIPgetVars(scip);
-      for( int i = 0; i < SCIPgetNTotalVars(scip); i++ )
+     // for( int i = 0; i < SCIPgetNTotalVars(scip); i++ )
+      for( int i = 0; i < SCIPgetNVars(tempScip); i++ )
       {
          SCIP_VAR* copyvar = (SCIP_VAR*)SCIPhashmapGetImage(varmap, (void*)srcVars[i]);
          // std::cout << i << ": index = " << SCIPvarGetIndex(copyvar) << std::endl;

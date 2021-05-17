@@ -1,1 +1,1 @@
-#define GCG_GITHASH "6a662daa"
+#define GCG_GITHASH "bf27f0b5"

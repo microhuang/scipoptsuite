@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -296,12 +296,12 @@ bool reconstructVector(VectorRational& input, const Rational& denomBoundSquared,
 bool reconstructSol(SolRational& solution)
 {
 #if 0
-   DVectorRational buffer;
+   VectorRational buffer;
 
    if(solution.hasPrimal())
    {
       buffer.reDim((solution._primal).dim());
-      solution.getPrimal(buffer);
+      solution.getPrimalSol(buffer);
       reconstructVector(buffer);
       solution._primal = buffer;
 
@@ -322,7 +322,7 @@ bool reconstructSol(SolRational& solution)
    if(solution.hasDual())
    {
       buffer.reDim((solution._dual).dim());
-      solution.getDual(buffer);
+      solution.getDualSol(buffer);
       reconstructVector(buffer);
       solution._dual = buffer;
 

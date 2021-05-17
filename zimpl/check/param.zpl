@@ -8,7 +8,7 @@
 #*                                                                           */
 #* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #*
-#* Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+#* Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
 #* 
 #* This program is free software; you can redistribute it and/or
 #* modify it under the terms of the GNU General Public License
@@ -40,6 +40,8 @@ param h[I*J] :=
 |3|   4,   3,-17, 66*5.5 |
 |5| 2/3, -.4,  3, abs(-4)|
 |9|   1,   2,  0,      3 | default -99;
+param m[I] := 2;
+param n[I] := default 3;
 
 var x[I];
 
@@ -50,4 +52,4 @@ subto d1 : sum <i> in I : g[d[i]] * x[i] >= 0;
 subto e1 : sum <i> in I with i > 5: e[i] * x[i] >= 0;
 subto f1 : g[f[5,"a"]] * x[1] + g[f[5,"b"]] * x[2] >= 0;
 subto h1 : sum <i,j> in I*J with h[i,j] != -99: h[i,j] * x[i] >= 0;
-
+subto mn1 : sum <i> in I: (1 + m[i] - n[i]) * x[i] >= 0;

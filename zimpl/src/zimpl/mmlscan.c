@@ -726,18 +726,18 @@ int yy_flex_debug = 1;
 
 static const flex_int16_t yy_rule_linenum[107] =
     {   0,
-       78,   79,   80,   81,   82,   83,   84,   85,   86,   87,
-       88,   89,   90,   91,   92,   93,   94,   95,   96,   97,
-       98,   99,  100,  101,  102,  103,  104,  105,  106,  107,
-      108,  109,  110,  111,  112,  113,  114,  115,  116,  117,
-      118,  119,  120,  121,  122,  123,  124,  125,  126,  127,
-      128,  129,  130,  131,  132,  133,  134,  135,  136,  137,
-      138,  139,  140,  141,  142,  143,  144,  145,  146,  147,
-      148,  149,  150,  151,  152,  153,  154,  155,  156,  157,
-      158,  159,  160,  161,  162,  163,  164,  165,  166,  167,
-      168,  169,  170,  171,  172,  173,  174,  175,  176,  178,
+       82,   83,   84,   85,   86,   87,   88,   89,   90,   91,
+       92,   93,   94,   95,   96,   97,   98,   99,  100,  101,
+      102,  103,  104,  105,  106,  107,  108,  109,  110,  111,
+      112,  113,  114,  115,  116,  117,  118,  119,  120,  121,
+      122,  123,  124,  125,  126,  127,  128,  129,  130,  131,
+      132,  133,  134,  135,  136,  137,  138,  139,  140,  141,
+      142,  143,  144,  145,  146,  147,  148,  149,  150,  151,
+      152,  153,  154,  155,  156,  157,  158,  159,  160,  161,
+      162,  163,  164,  165,  166,  167,  168,  169,  170,  171,
+      172,  173,  174,  175,  176,  177,  178,  179,  180,  182,
 
-      184,  191,  308,  314,  321,  323
+      188,  195,  312,  318,  325,  327
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -758,7 +758,7 @@ char *yytext;
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -782,20 +782,23 @@ char *yytext;
 #pragma clang diagnostic ignored "-Wunused-macros"
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 #pragma clang diagnostic ignored "-Wunneeded-internal-declaration"
+#pragma clang diagnostic ignored "-Wunreachable-code"
 
 #pragma GCC   diagnostic ignored "-Wmissing-prototypes"
 #pragma GCC   diagnostic ignored "-Wsign-compare"
-
-/*lint -e527 -e835 -e717 */
+#pragma GCC   diagnostic ignored "-Wimplicit-fallthrough"
+#pragma GCC   diagnostic ignored "-Wsuggest-attribute=noreturn"
 
 #include <sys/types.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <ctype.h>
-#include <assert.h>
-#include <string.h>
+//#include <string.h>
 #include <stdbool.h>
+//#include <assert.h>
 
+#include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
 #include "zimpl/elem.h"
@@ -808,7 +811,8 @@ char *yytext;
 #include "zimpl/strstore.h"
 #include "zimpl/mmlparse2.h"
 
-extern void yyerror(const char* s);
+/*lint -sem(yyerror, 1p, r_no) */ 
+extern void yyerror(const char* s) is_NORETURN;
 
 #define YY_DECL int yylex(YYSTYPE* lval)
 
@@ -817,8 +821,8 @@ YY_DECL;
 static int        yycolumn  = 0;
 static int        yydecl    = 0;
 
-#line 821 "src/zimpl/mmlscan.c"
-#line 822 "src/zimpl/mmlscan.c"
+#line 825 "src/zimpl/mmlscan.c"
+#line 826 "src/zimpl/mmlscan.c"
 
 #define INITIAL 0
 
@@ -1096,9 +1100,9 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 77 "src/zimpl/mmlscan.l"
+#line 81 "src/zimpl/mmlscan.l"
 
-#line 1102 "src/zimpl/mmlscan.c"
+#line 1106 "src/zimpl/mmlscan.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1176,502 +1180,502 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 78 "src/zimpl/mmlscan.l"
+#line 82 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return POW; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 79 "src/zimpl/mmlscan.l"
+#line 83 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ASGN; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 80 "src/zimpl/mmlscan.l"
+#line 84 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CMP_EQ; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 81 "src/zimpl/mmlscan.l"
+#line 85 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CMP_LE; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 82 "src/zimpl/mmlscan.l"
+#line 86 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CMP_GE; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 83 "src/zimpl/mmlscan.l"
+#line 87 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CMP_LT; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 84 "src/zimpl/mmlscan.l"
+#line 88 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CMP_GT; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 85 "src/zimpl/mmlscan.l"
+#line 89 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CMP_NE; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 86 "src/zimpl/mmlscan.l"
+#line 90 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return FAC; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 87 "src/zimpl/mmlscan.l"
+#line 91 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return NOT; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 88 "src/zimpl/mmlscan.l"
+#line 92 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return AND; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 89 "src/zimpl/mmlscan.l"
+#line 93 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return OR; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 90 "src/zimpl/mmlscan.l"
+#line 94 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return XOR; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 91 "src/zimpl/mmlscan.l"
+#line 95 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DECLSET; return DECLSET; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 92 "src/zimpl/mmlscan.l"
+#line 96 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DECLPAR; return DECLPAR; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 93 "src/zimpl/mmlscan.l"
+#line 97 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DECLVAR; return DECLVAR; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 94 "src/zimpl/mmlscan.l"
+#line 98 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DECLMAX; return DECLMAX; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 95 "src/zimpl/mmlscan.l"
+#line 99 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DECLMIN; return DECLMIN; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 96 "src/zimpl/mmlscan.l"
+#line 100 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DECLSUB; return DECLSUB; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 97 "src/zimpl/mmlscan.l"
+#line 101 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DECLSOS; return DECLSOS; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 98 "src/zimpl/mmlscan.l"
+#line 102 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DEFNUMB; return DEFNUMB; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 99 "src/zimpl/mmlscan.l"
+#line 103 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DEFSTRG; return DEFSTRG; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 100 "src/zimpl/mmlscan.l"
+#line 104 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DEFBOOL; return DEFBOOL; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 101 "src/zimpl/mmlscan.l"
+#line 105 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; yydecl = DEFSET;  return DEFSET; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 102 "src/zimpl/mmlscan.l"
+#line 106 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return IN; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 103 "src/zimpl/mmlscan.l"
+#line 107 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return WITH; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 104 "src/zimpl/mmlscan.l"
+#line 108 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return DO; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 105 "src/zimpl/mmlscan.l"
+#line 109 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return BINARY; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 106 "src/zimpl/mmlscan.l"
+#line 110 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return INTEGER; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 107 "src/zimpl/mmlscan.l"
+#line 111 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return REAL; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 108 "src/zimpl/mmlscan.l"
+#line 112 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SUM; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 109 "src/zimpl/mmlscan.l"
+#line 113 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return PROD; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 110 "src/zimpl/mmlscan.l"
+#line 114 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return FORALL; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 111 "src/zimpl/mmlscan.l"
+#line 115 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return EXISTS; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 112 "src/zimpl/mmlscan.l"
+#line 116 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return VIF; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 113 "src/zimpl/mmlscan.l"
+#line 117 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return IF; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 114 "src/zimpl/mmlscan.l"
+#line 118 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return THEN; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 115 "src/zimpl/mmlscan.l"
+#line 119 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ELSE; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 116 "src/zimpl/mmlscan.l"
+#line 120 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return END; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 117 "src/zimpl/mmlscan.l"
+#line 121 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return TO; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 118 "src/zimpl/mmlscan.l"
+#line 122 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return UNTIL; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 119 "src/zimpl/mmlscan.l"
+#line 123 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return BY; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 120 "src/zimpl/mmlscan.l"
+#line 124 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return UNION; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 121 "src/zimpl/mmlscan.l"
+#line 125 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return INTER; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 122 "src/zimpl/mmlscan.l"
+#line 126 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SYMDIFF; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 123 "src/zimpl/mmlscan.l"
+#line 127 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CROSS; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 124 "src/zimpl/mmlscan.l"
+#line 128 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return PROJ; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 125 "src/zimpl/mmlscan.l"
+#line 129 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return WITHOUT; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 126 "src/zimpl/mmlscan.l"
+#line 130 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return MOD; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 127 "src/zimpl/mmlscan.l"
+#line 131 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return DIV; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 128 "src/zimpl/mmlscan.l"
+#line 132 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return MIN; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 129 "src/zimpl/mmlscan.l"
+#line 133 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return MAX; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 130 "src/zimpl/mmlscan.l"
+#line 134 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ARGMIN; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 131 "src/zimpl/mmlscan.l"
+#line 135 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ARGMAX; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 132 "src/zimpl/mmlscan.l"
+#line 136 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return READ; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 133 "src/zimpl/mmlscan.l"
+#line 137 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return AS; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 134 "src/zimpl/mmlscan.l"
+#line 138 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SKIP; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 135 "src/zimpl/mmlscan.l"
+#line 139 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return USE; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 136 "src/zimpl/mmlscan.l"
+#line 140 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return COMMENT; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 137 "src/zimpl/mmlscan.l"
+#line 141 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SCALE; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 138 "src/zimpl/mmlscan.l"
+#line 142 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SEPARATE; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 139 "src/zimpl/mmlscan.l"
+#line 143 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CHECKONLY; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 140 "src/zimpl/mmlscan.l"
+#line 144 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return INDICATOR; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 141 "src/zimpl/mmlscan.l"
+#line 145 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CARD; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 142 "src/zimpl/mmlscan.l"
+#line 146 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ABS; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 143 "src/zimpl/mmlscan.l"
+#line 147 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return VABS; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 144 "src/zimpl/mmlscan.l"
+#line 148 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SGN; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 145 "src/zimpl/mmlscan.l"
+#line 149 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ROUND; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 146 "src/zimpl/mmlscan.l"
+#line 150 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return FLOOR; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 147 "src/zimpl/mmlscan.l"
+#line 151 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CEIL; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 148 "src/zimpl/mmlscan.l"
+#line 152 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return LOG; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 149 "src/zimpl/mmlscan.l"
+#line 153 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return LN; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 150 "src/zimpl/mmlscan.l"
+#line 154 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return EXP; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 151 "src/zimpl/mmlscan.l"
+#line 155 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SQRT; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 152 "src/zimpl/mmlscan.l"
+#line 156 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SIN; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 153 "src/zimpl/mmlscan.l"
+#line 157 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return COS; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 154 "src/zimpl/mmlscan.l"
+#line 158 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return TAN; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 155 "src/zimpl/mmlscan.l"
+#line 159 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ASIN; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 156 "src/zimpl/mmlscan.l"
+#line 160 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ACOS; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 157 "src/zimpl/mmlscan.l"
+#line 161 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ATAN; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 158 "src/zimpl/mmlscan.l"
+#line 162 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return POWER; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 159 "src/zimpl/mmlscan.l"
+#line 163 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SGNPOW; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 160 "src/zimpl/mmlscan.l"
+#line 164 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return PRIORITY; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 161 "src/zimpl/mmlscan.l"
+#line 165 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return STARTVAL; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 162 "src/zimpl/mmlscan.l"
+#line 166 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return DEFAULT; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 163 "src/zimpl/mmlscan.l"
+#line 167 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SUBSETS; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 164 "src/zimpl/mmlscan.l"
+#line 168 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return POWERSET; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 165 "src/zimpl/mmlscan.l"
+#line 169 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return INDEXSET; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 166 "src/zimpl/mmlscan.l"
+#line 170 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return PRINT; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 167 "src/zimpl/mmlscan.l"
+#line 171 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return CHECK; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 168 "src/zimpl/mmlscan.l"
+#line 172 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return INFTY; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 169 "src/zimpl/mmlscan.l"
+#line 173 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return RANDOM; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 170 "src/zimpl/mmlscan.l"
+#line 174 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return ORD; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 171 "src/zimpl/mmlscan.l"
+#line 175 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return TYPE1; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 172 "src/zimpl/mmlscan.l"
+#line 176 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return TYPE2; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 173 "src/zimpl/mmlscan.l"
+#line 177 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return IMPLICIT; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 174 "src/zimpl/mmlscan.l"
+#line 178 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return LENGTH; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 175 "src/zimpl/mmlscan.l"
+#line 179 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return SUBSTR; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 176 "src/zimpl/mmlscan.l"
+#line 180 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return MATCH; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 178 "src/zimpl/mmlscan.l"
+#line 182 "src/zimpl/mmlscan.l"
 { 
       yycolumn += yyleng; 
       lval->numb = numb_new_ascii(yytext);
@@ -1681,7 +1685,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 184 "src/zimpl/mmlscan.l"
+#line 188 "src/zimpl/mmlscan.l"
 { 
       yycolumn += yyleng; 
       lval->numb = numb_new_ascii(yytext);
@@ -1691,7 +1695,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 191 "src/zimpl/mmlscan.l"
+#line 195 "src/zimpl/mmlscan.l"
 {
 
       Symbol* sym;
@@ -1812,7 +1816,7 @@ YY_RULE_SETUP
 case 103:
 /* rule 103 can match eol */
 YY_RULE_SETUP
-#line 308 "src/zimpl/mmlscan.l"
+#line 312 "src/zimpl/mmlscan.l"
 { 
       yycolumn += yyleng; 
       yytext[strlen(yytext) - 1] = '\0';
@@ -1823,7 +1827,7 @@ YY_RULE_SETUP
 case 104:
 /* rule 104 can match eol */
 YY_RULE_SETUP
-#line 314 "src/zimpl/mmlscan.l"
+#line 318 "src/zimpl/mmlscan.l"
 { 
       yycolumn += yyleng; 
       yytext[strlen(yytext) - 1] = '\0';
@@ -1834,24 +1838,24 @@ YY_RULE_SETUP
 case 105:
 /* rule 105 can match eol */
 YY_RULE_SETUP
-#line 321 "src/zimpl/mmlscan.l"
+#line 325 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; }
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 323 "src/zimpl/mmlscan.l"
+#line 327 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return *yytext; }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 325 "src/zimpl/mmlscan.l"
+#line 329 "src/zimpl/mmlscan.l"
 { yycolumn += yyleng; return EOF; }
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 327 "src/zimpl/mmlscan.l"
+#line 331 "src/zimpl/mmlscan.l"
 ECHO;
 	YY_BREAK
-#line 1855 "src/zimpl/mmlscan.c"
+#line 1859 "src/zimpl/mmlscan.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2956,7 +2960,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 327 "src/zimpl/mmlscan.l"
+#line 331 "src/zimpl/mmlscan.l"
 
 static const Stmt* yystmt = NULL;
 

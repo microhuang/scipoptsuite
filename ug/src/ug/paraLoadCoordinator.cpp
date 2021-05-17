@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -3484,7 +3484,7 @@ ParaLoadCoordinator::sendParaNodesToIdleSolvers(
                ( paraNode->getDualBoundValue() < paraInitiator->getGlobalBestIncumbentSolution()->getObjectiveFuntionValue() ||
                      ( paraInitiator->isObjIntegral() &&
                      static_cast<int>(ceil( paraNode->getDualBoundValue() ) )
-                     < static_cast<int>(paraInitiator->getGlobalBestIncumbentSolution()->getObjectiveFuntionValue() ) )
+                     < static_cast<int>(paraInitiator->getGlobalBestIncumbentSolution()->getObjectiveFuntionValue() + MINEPSILON ) )
                      ) ) ||
                !( paraInitiator->getGlobalBestIncumbentSolution() ) )
          {
@@ -3948,6 +3948,7 @@ ParaLoadCoordinator::warmStart(
                racingWinnerParams->send(paraComm, i)
          );
       }
+      std::cout << "*** winner parameter is read from " << racingWinnerParamsName << "***" << std::endl;
    }
 
    /** set solution and get internal incumbent value */

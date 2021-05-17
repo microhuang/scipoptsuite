@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -34,7 +34,8 @@ namespace soplex
    Testing version of an SPxVectorST using a very simplistic heuristic to
    build up an approximated solution vector.
 */
-class SPxSumST : public SPxVectorST
+template <class R>
+class SPxSumST : public SPxVectorST<R>
 {
 protected:
 
@@ -42,7 +43,7 @@ protected:
    /**@name Protected helpers */
    ///@{
    /// sets up variable weights.
-   void setupWeights(SPxSolver& base);
+   void setupWeights(SPxSolverBase<R>& base);
    ///@}
 
 public:
@@ -53,22 +54,22 @@ public:
    /// default constructor.
    SPxSumST()
    {
-      m_name = "Sum";
+      this->m_name = "Sum";
    }
    /// copy constructor
    SPxSumST(const SPxSumST& old)
-      : SPxVectorST(old)
+      : SPxVectorST<R>(old)
    {
-      assert(isConsistent());
+      assert(this->isConsistent());
    }
    /// assignment operator
    SPxSumST& operator=(const SPxSumST& rhs)
    {
       if(this != &rhs)
       {
-         SPxVectorST::operator=(rhs);
+         SPxVectorST<R>::operator=(rhs);
 
-         assert(isConsistent());
+         assert(this->isConsistent());
       }
 
       return *this;
@@ -77,7 +78,7 @@ public:
    virtual ~SPxSumST()
    {}
    /// clone function for polymorphism
-   inline virtual SPxStarter* clone() const
+   inline virtual SPxStarter<R>* clone() const
    {
       return new SPxSumST(*this);
    }
@@ -86,4 +87,6 @@ public:
 };
 
 } // namespace soplex
+
+#include "spxsumst.hpp"
 #endif // _SPXSUMST_H_

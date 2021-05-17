@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2011-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2011-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,10 +36,10 @@ extern size_t      stkchk_maxi;
 
 extern void   stkchk_init_x(void);
 extern size_t stkchk_used_x(void);
-/*lint -sem(  stkchk_maximum_x, 1p) */
-extern void   stkchk_maximum_x(FILE* fp);
-/*lint -sem(  stkchk_display_x, 1p) */
-extern void   stkchk_display_x(FILE* fp);
+//lint -sem(  stkchk_maximum_x, inout(1), 1p == 1) 
+extern void   stkchk_maximum_x(FILE* fp) expects_NONNULL;
+//lint -sem(  stkchk_display_x, inout(1), 1p == 1) 
+extern void   stkchk_display_x(FILE* fp) expects_NONNULL;
 
 #define stkchk_init()      stkchk_init_x()
 #define stkchk_used()      stkchk_used_x()
@@ -53,9 +53,9 @@ extern void   stkchk_display_x(FILE* fp);
 #define stkchk_display(fp) /**/
 #define stkchk_maximum(fp) /**/
 
-#endif /* NDEBUG */
+#endif // NDEBUG 
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _STKCHK_H_ */
+#endif // _STKCHK_H_ 

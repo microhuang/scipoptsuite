@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -38,6 +38,7 @@ namespace soplex
    terminate by \ref soplex::SPxSolver::load() "loading" the generated basis to
    SoPlex. Loaded bases must be nonsingular.
 */
+template <class R>
 class SPxStarter
 {
 protected:
@@ -95,7 +96,7 @@ public:
    /**@name Starting */
    ///@{
    /// generates start basis for loaded basis.
-   virtual void generate(SPxSolver& base) = 0;
+   virtual void generate(SPxSolverBase<R>& base) = 0;
    ///@}
 
    //-------------------------------------
@@ -116,4 +117,8 @@ private:
 
 };
 } // namespace soplex
+
+// For general templated functions
+#include "spxstarter.hpp"
+
 #endif // _SPXDSTARTER_H_

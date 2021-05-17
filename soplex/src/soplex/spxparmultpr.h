@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -44,7 +44,8 @@ namespace soplex
 
    See SPxPricer for a class documentation.
 */
-class SPxParMultPR : public SPxPricer
+template <class R>
+class SPxParMultPR : public SPxPricer<R>
 {
 private:
 
@@ -57,7 +58,7 @@ private:
       ///
       SPxId id;
       ///
-      Real test;
+      R test;
    };
    ///@}
 
@@ -65,7 +66,7 @@ private:
    /**@name Helper data */
    ///@{
    ///
-   DataArray < SPxParMultPr_Tmp > pricSet;
+   Array < SPxParMultPr_Tmp > pricSet;
    ///
    int multiParts;
    ///
@@ -85,7 +86,7 @@ public:
    ///@{
    /// default constructor
    SPxParMultPR()
-      : SPxPricer("ParMult")
+      : SPxPricer<R>("ParMult")
       , multiParts(0)
       , used(0)
       , min(0)
@@ -94,7 +95,7 @@ public:
    {}
    /// copy constructor
    SPxParMultPR(const SPxParMultPR& old)
-      : SPxPricer(old)
+      : SPxPricer<R>(old)
       , pricSet(old.pricSet)
       , multiParts(old.multiParts)
       , used(old.used)
@@ -107,7 +108,7 @@ public:
    {
       if(this != &rhs)
       {
-         SPxPricer::operator=(rhs);
+         SPxPricer<R>::operator=(rhs);
          pricSet = rhs.pricSet;
          multiParts = rhs.multiParts;
          used = rhs.used;
@@ -122,7 +123,7 @@ public:
    virtual ~SPxParMultPR()
    {}
    /// clone function for polymorphism
-   inline virtual SPxPricer* clone()  const
+   inline virtual SPxPricer<R>* clone()  const
    {
       return new SPxParMultPR(*this);
    }
@@ -132,9 +133,9 @@ public:
    /**@name Interface */
    ///@{
    /// set the solver
-   virtual void load(SPxSolver* solver);
+   virtual void load(SPxSolverBase<R>* solver);
    /// set entering or leaving algorithm
-   virtual void setType(SPxSolver::Type tp);
+   virtual void setType(typename SPxSolverBase<R>::Type tp);
    ///
    virtual int selectLeave();
    ///
@@ -144,4 +145,6 @@ public:
 };
 
 } // namespace soplex
+
+#include "spxparmultpr.hpp"
 #endif // _SPXPARMULTPRR_H_

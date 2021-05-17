@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -50,6 +50,9 @@ protected:
    int    nTransferredLocalCuts;      /**< number of local cuts transferred from a ParaNode */
    int    minTransferredLocalCuts;    /**< minimum number of local cuts transferred from a ParaNode */
    int    maxTransferredLocalCuts;    /**< maximum number of local cuts transferred from a ParaNode */
+   int    nTransferredBendersCuts;    /**< number of benders cuts transferred from a ParaNode */
+   int    minTransferredBendersCuts;  /**< minimum number of benders cuts transferred from a ParaNode */
+   int    maxTransferredBendersCuts;  /**< maximum number of benders cuts transferred from a ParaNode */
    int    nRestarts;                  /**< number of restarts */
    double minIisum;                   /**< minimum sum of integer infeasibility */
    double maxIisum;                   /**< maximum sum of integer infeasibility */
@@ -64,6 +67,7 @@ public:
          nImprovedIncumbent(-1), terminationState(-1), nSolvedWithNoPreprocesses(-1),
          nSimplexIterRoot(0), averageSimplexIter(0.0),
          nTransferredLocalCuts(0), minTransferredLocalCuts(INT_MAX), maxTransferredLocalCuts(INT_MIN),
+         nTransferredBendersCuts(0), minTransferredBendersCuts(INT_MAX), maxTransferredBendersCuts(INT_MIN),
          nRestarts(0), minIisum(0.0), maxIisum(0.0),
          minNii(0), maxNii(0), dualBound(-DBL_MAX)
    {
@@ -82,6 +86,9 @@ public:
          int    inNTransferredLocalCuts,      /**< number of local cuts transferred from a ParaNode */
          int    inMinTransferredLocalCuts,    /**< minimum number of local cuts transferred from a ParaNode */
          int    inMaxTransferredLocalCuts,    /**< maximum number of local cuts transferred from a ParaNode */
+         int    inNTransferredBendersCuts,    /**< number of benders cuts transferred from a ParaNode */
+         int    inMinTransferredBendersCuts,  /**< minimum number of benders cuts transferred from a ParaNode */
+         int    inMaxTransferredBendersCuts,  /**< maximum number of benders cuts transferred from a ParaNode */
          int    inNRestarts,                  /**< number of restarts */
          double inMinIisum,                   /**< minimum sum of integer infeasibility */
          double inMaxIisum,                   /**< maximum sum of integer infeasibility */
@@ -94,6 +101,7 @@ public:
          terminationState(inTerminationState), nSolvedWithNoPreprocesses(inNSolvedWithNoPreprocesses),
          nSimplexIterRoot(inNSimplexIterRoot), averageSimplexIter(inAverageSimplexIter),
          nTransferredLocalCuts(inNTransferredLocalCuts), minTransferredLocalCuts(inMaxTransferredLocalCuts), maxTransferredLocalCuts(inMaxTransferredLocalCuts),
+         nTransferredBendersCuts(inNTransferredBendersCuts), minTransferredBendersCuts(inMaxTransferredBendersCuts), maxTransferredBendersCuts(inMaxTransferredBendersCuts),
          nRestarts(inNRestarts), minIisum(inMinIisum), maxIisum(inMaxIisum), minNii(inMinNii), maxNii(inMaxNii),
          dualBound(inDualBound)
    {

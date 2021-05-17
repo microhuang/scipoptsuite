@@ -1,1 +1,1 @@
-#define SPX_GITHASH "b8833cd3"
+#define SPX_GITHASH "e24c304e"

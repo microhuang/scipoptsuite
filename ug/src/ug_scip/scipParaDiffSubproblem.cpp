@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -47,6 +47,7 @@ ScipParaDiffSubproblem::ScipParaDiffSubproblem(
             branchLinearConss(0),
             branchSetppcConss(0),
             linearConss(0),
+            bendersLinearConss(0),
             boundDisjunctions(0),
             varBranchStats(0),
             varValues(0)
@@ -98,7 +99,14 @@ ScipParaDiffSubproblem::ScipParaDiffSubproblem(
             );
       if( scipParaSolver->isOriginalIndeciesMap() )
       {
-         indicesAmongSolvers[i] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+         if( scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar)) >= 0   )
+         {
+            indicesAmongSolvers[i] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+         }
+         else
+         {
+            continue;
+         }
       }
       else
       {
@@ -181,17 +189,98 @@ ScipParaDiffSubproblem::ScipParaDiffSubproblem(
                // assert( scipParaSolver->getOrgVarUb(indicesAmongSolvers[i]) >=  branchBounds[i] );
             }
          }
+         // This does not work in case of multi-aggregated 
+         // std::cout << "SCIPvarGetType(transformVar) = " << SCIPvarGetType(transformVar) << std::endl;
+         // std::cout << scipParaSolver->getOrgVarLb(indicesAmongSolvers[i]) << " <= "
+         //        <<  branchBounds[i] << " <= "
+         //        <<  scipParaSolver->getOrgVarUb(indicesAmongSolvers[i]) << std::endl;
+         assert( SCIPisLE(scip,scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar)), branchBounds[i]) &&
+                SCIPisGE(scip,scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)), branchBounds[i]) );
+         assert( SCIPvarGetType(transformVar) !=  SCIP_VARTYPE_BINARY 
+	         || ( ( SCIPvarGetType(transformVar) == SCIP_VARTYPE_BINARY && boundTypes[i] == SCIP_BOUNDTYPE_LOWER && EPSEQ(branchBounds[i], 1.0, DEFAULT_NUM_EPSILON) ) ||
+                      ( SCIPvarGetType(transformVar) == SCIP_VARTYPE_BINARY && boundTypes[i] == SCIP_BOUNDTYPE_UPPER && EPSEQ(branchBounds[i], 0.0, DEFAULT_NUM_EPSILON) ) ) );
+         i++;
       }
-      // This does not work in case of multi-aggregated 
-      // std::cout << scipParaSolver->getOrgVarLb(indicesAmongSolvers[i]) << " <= "
-      //       <<  branchBounds[i] << " <= "
-      //       <<  scipParaSolver->getOrgVarUb(indicesAmongSolvers[i]) << std::endl;
-      assert( SCIPisLE(scip,scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar)), branchBounds[i]) &&
-             SCIPisGE(scip,scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)), branchBounds[i]) );
-      assert( SCIPvarGetType(transformVar) !=  SCIP_VARTYPE_BINARY ||
-             ( SCIPvarGetType(transformVar) == SCIP_VARTYPE_BINARY && boundTypes[i] == SCIP_BOUNDTYPE_LOWER && EPSEQ(branchBounds[i], 1.0, DEFAULT_NUM_EPSILON ) ) ||
-             ( SCIPvarGetType(transformVar) == SCIP_VARTYPE_BINARY && boundTypes[i] == SCIP_BOUNDTYPE_UPPER && EPSEQ(branchBounds[i], 0.0, DEFAULT_NUM_EPSILON ) ) );
-      i++;
+      else  // SCIPvarGetType(transformVar) == SCIP_VARTYPE_CONTINUOUS
+      {
+          if( scipParaSolver->isCopyIncreasedVariables() )
+          {
+             if( SCIPvarGetProbindex(transformVar) >= scipParaSolver->getNOrgVars() )
+             {
+                continue;
+             }
+             // if( !(SCIPisLE(scip,scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar)), branchBounds[i]) &&
+             //      SCIPisGE(scip,scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)), branchBounds[i])) )
+             //   continue;  // this is a workaround
+             if( boundTypes[i] == SCIP_BOUNDTYPE_LOWER )
+             {
+            	if( SCIPisLT(scip, scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar)), branchBounds[i] ) )
+            	{
+                    // branchBounds[i] = SCIPfeasCeil(scip, branchBounds[i]);
+                    if( SCIPisGE(scip,scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar)),branchBounds[i]) ||
+                    		SCIPisLE(scip,scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)), branchBounds[i] ) )
+                    {
+                       std::cout << "ORG(L):"
+                                 << SCIPvarGetName(transformVar) << ":"
+                                 << scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar))
+                                 << "<= "
+                                 << branchBounds[i]
+                                 << " <= "
+                                 << scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)) << std::endl;
+                       branchBounds[i] = scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar)); // this is a workaround
+                    }
+                    i++;
+                    // this does not work in case of multi-aggregated
+                    // assert( scipParaSolver->getOrgVarLb(indicesAmongSolvers[i]) <=  branchBounds[i] );
+            	}
+             }
+             else
+             {
+            	 if( SCIPisGT(scip, scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)), branchBounds[i] ) )
+            	 {
+                     // branchBounds[i] = SCIPfeasFloor(scip, branchBounds[i]);
+                     if( SCIPisLE(scip, scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)), branchBounds[i]) ||
+                     		SCIPisGE(scip, scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar)), branchBounds[i]) )
+                     {
+                        std::cout << "ORG(U):"
+                                  << SCIPvarGetName(transformVar) << ":"
+                                  << scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar))
+                                  << "<= "
+                                  << branchBounds[i]
+                                  << " <= "
+                                  << scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)) << std::endl;
+                        branchBounds[i] = scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)); // this is a workaround
+                     }
+                     i++;
+                     // this does not work in case of multi-aggregated
+                     // assert( scipParaSolver->getOrgVarUb(indicesAmongSolvers[i]) >=  branchBounds[i] );
+            	 }
+             }
+          }
+          else
+          {
+             if( boundTypes[i] == SCIP_BOUNDTYPE_LOWER )
+             {
+             	if( SCIPisLT(scip, scipParaSolver->getOrgVarLb(SCIPvarGetProbindex(transformVar)), branchBounds[i] ) )
+             	{
+             		i++;
+             	}
+                // branchBounds[i] = SCIPfeasCeil(scip, branchBounds[i]);
+                // this does not work in case of multi-aggregated
+                // assert( scipParaSolver->getOrgVarLb(indicesAmongSolvers[i]) <=  branchBounds[i] );
+             }
+             else
+             {
+              	if( SCIPisGT(scip, scipParaSolver->getOrgVarUb(SCIPvarGetProbindex(transformVar)), branchBounds[i] ) )
+              	{
+              		i++;
+              	}
+                // branchBounds[i] = SCIPfeasFloor(scip, branchBounds[i]);
+                // this does not work in case of multi-aggregated
+                // assert( scipParaSolver->getOrgVarUb(indicesAmongSolvers[i]) >=  branchBounds[i] );
+             }
+          }
+      }
    }
    nBoundChanges = i;
 
@@ -227,7 +316,8 @@ ScipParaDiffSubproblem::ScipParaDiffSubproblem(
    }
 
    if( scipParaSolver->getParaParamSet()->getBoolParamValue(TransferLocalCuts) ||
-         scipParaSolver->getParaParamSet()->getBoolParamValue(TransferConflictCuts)
+         scipParaSolver->getParaParamSet()->getBoolParamValue(TransferConflictCuts) ||
+		 scipParaSolver->getParaParamSet()->getBoolParamValue(TransferBendersCuts)
          )
    {
       addLocalNodeInfo(scip, scipParaSolver);
@@ -270,6 +360,7 @@ ScipParaDiffSubproblem::addBranchLinearConss(
    std::list<BranchConsLinearInfoPtr> branchConsList;
 
    int lNewConsNames = 0;
+   int nRemoved = 0;
    for( int c = 0; c < nAddedConss; ++c )
    {
       SCIP_CONS* cons = addedConss[c];
@@ -312,6 +403,7 @@ ScipParaDiffSubproblem::addBranchLinearConss(
       SCIP_Real* vals = SCIPgetValsLinear(scip, cons);
 
       int i = 0;
+      bool removeConss = false;
       for( i = 0; i < ncols; ++i )
       {
          SCIP_VAR *transformVar = vars[i];
@@ -332,7 +424,15 @@ ScipParaDiffSubproblem::addBranchLinearConss(
          }
          if( scipParaSolver->isOriginalIndeciesMap() )
          {
-            branchConsLinearInfo->idxLinearCoefsVars[i] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+            if( scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar)) >= 0   )
+            {
+               branchConsLinearInfo->idxLinearCoefsVars[i] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+            }
+            else
+            {
+               removeConss = true;
+               break;
+            }
          }
          else
          {
@@ -356,10 +456,18 @@ ScipParaDiffSubproblem::addBranchLinearConss(
          delete [] branchConsLinearInfo->idxLinearCoefsVars;
          delete [] branchConsLinearInfo->linearCoefs;
          delete branchConsLinearInfo;
-         THROW_LOGICAL_ERROR1("Something wrong to make a branching linear constraint for original problem");
+         if( removeConss == true )
+         {
+            nRemoved++;
+            continue;
+         }
+         else
+         {
+            THROW_LOGICAL_ERROR1("Something wrong to make a branching linear constraint for original problem");
+         }
       }
    }
-   assert( static_cast<int>(branchConsList.size()) == nLinearConss );
+   assert( static_cast<int>(branchConsList.size()) == (nLinearConss - nRemoved) );
 
    ScipParaDiffSubproblem *parentDiffSubproblem = scipParaSolver->getParentDiffSubproblem();
 
@@ -455,6 +563,7 @@ ScipParaDiffSubproblem::addBranchSetppcConss(
    std::list<BranchConsSetppcInfoPtr> branchConsList;
 
    int lNewConsNames = 0;
+   int nRemoved = 0;
    for( int c = 0; c < nAddedConss; ++c )
    {
       SCIP_CONS* cons = addedConss[c];
@@ -479,6 +588,7 @@ ScipParaDiffSubproblem::addBranchSetppcConss(
       SCIP_VAR** vars = SCIPgetVarsSetppc(scip, cons);
 
       int i = 0;
+      bool removeConss = false;
       for( i = 0; i < ncols; ++i )
       {
          SCIP_VAR *transformVar = vars[i];
@@ -491,7 +601,16 @@ ScipParaDiffSubproblem::addBranchSetppcConss(
          // assert(transformVar != NULL);
          if( scipParaSolver->isOriginalIndeciesMap() )
          {
-            branchConsSetppcInfo->idxSetppcVars[i] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+            if( scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar)) >= 0   )
+            {
+               branchConsSetppcInfo->idxSetppcVars[i] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+            }
+            else
+            {
+               removeConss = true;
+               break;
+            }
+
          }
          else
          {
@@ -510,10 +629,18 @@ ScipParaDiffSubproblem::addBranchSetppcConss(
       {
          delete [] branchConsSetppcInfo->idxSetppcVars;
          delete branchConsSetppcInfo;
-         THROW_LOGICAL_ERROR1("Something wrong to make a branching linear constraint for original problem");
+         if( removeConss == true )
+         {
+            nRemoved++;
+            continue;
+         }
+         else
+         {
+            THROW_LOGICAL_ERROR1("Something wrong to make a branching linear constraint for original problem");
+         }
       }
    }
-   assert( static_cast<int>(branchConsList.size()) == nSetppcConss );
+   assert( static_cast<int>(branchConsList.size()) == (nSetppcConss - nRemoved) );
 
    ScipParaDiffSubproblem *parentDiffSubproblem = scipParaSolver->getParentDiffSubproblem();
 
@@ -602,11 +729,15 @@ ScipParaDiffSubproblem::addLocalNodeInfo(
 
       cuts = SCIPgetPoolCuts(scip);
       ncuts = SCIPgetNPoolCuts(scip);
+      int nRemoved = 0;
+
+      int *orgVarIndexies = new int[scipParaSolver->getNOrgVars()];
+      double *orgVarCoefficients = new double[scipParaSolver->getNOrgVars()];
 
       for( int c = 0; c < ncuts; ++c )
       {
          SCIP_ROW* row;
-
+         bool removeConss = false;
          row = SCIPcutGetRow(cuts[c]);
          assert(!SCIProwIsLocal(row));
          assert(!SCIProwIsModifiable(row));
@@ -642,16 +773,28 @@ ScipParaDiffSubproblem::addLocalNodeInfo(
                rhs = SCIPinfinity(scip);
             }
 
+            for( int j = 0; j < scipParaSolver->getNOrgVars(); j++ )
+            {
+               orgVarIndexies[j] = -1;
+               orgVarCoefficients[j] = 0.0;
+            }
             SCIP_Real *vals = SCIProwGetVals(row);
             for( i = 0; i < ncols; ++i )
             {
+               int index = -1;
                SCIP_VAR *transformVar = SCIPcolGetVar(cols[i]);
                SCIP_Real scalar = vals[i];
                SCIP_Real constant = 0.0;
                if( SCIPvarGetOrigvarSum(&transformVar, &scalar, &constant ) ==  SCIP_INVALIDDATA )
+               {
+                  removeConss = true;
                   break;
+               }
                if( transformVar == NULL )
+               {
+                  removeConss = true;
                   break;
+               }
                // assert(transformVar != NULL);
                if( !SCIPisInfinity(scip, -SCIProwGetLhs(row)) )
                {
@@ -663,18 +806,52 @@ ScipParaDiffSubproblem::addLocalNodeInfo(
                }
                if( scipParaSolver->isOriginalIndeciesMap() )
                {
-                  localNodeInfo->idxLinearCoefsVars[i] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+                  if( scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar)) >= 0   )
+                  {
+                     // localNodeInfo->idxLinearCoefsVars[i] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+                     index = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+                  }
+                  else
+                  {
+                     removeConss = true;
+                     break;
+                  }
                }
                else
                {
-                  localNodeInfo->idxLinearCoefsVars[i] = SCIPvarGetIndex(transformVar);
+                  // localNodeInfo->idxLinearCoefsVars[i] = SCIPvarGetIndex(transformVar);
+                  index = SCIPvarGetIndex(transformVar);
                }
-               localNodeInfo->linearCoefs[i] = scalar;
+               // localNodeInfo->linearCoefs[i] = scalar;
+               assert( index >= 0 && index < scipParaSolver->getNOrgVars() );
+               if( orgVarIndexies[index] == -1 )
+               {
+                  orgVarIndexies[index] = index;
+                  orgVarCoefficients[index] = scalar;
+               }
+               else
+               {
+                  orgVarCoefficients[index] +=  scalar;
+                  std::cout << "*** Duplicate index = " << index << ", value = " << scalar << std::endl;
+               }
             }
             if( i == ncols )
             {
                assert( !SCIPisInfinity(scip, -SCIProwGetLhs(row)) == !SCIPisInfinity(scip, -lhs)  );
                assert( !SCIPisInfinity(scip, SCIProwGetRhs(row)) == !SCIPisInfinity(scip, rhs)  );
+               int nRowCols = 0;;
+               for (int j = 0; j < scipParaSolver->getNOrgVars(); j++ )
+               {
+                  if( orgVarIndexies[j] >= 0 )
+                  {
+                     localNodeInfo->idxLinearCoefsVars[nRowCols] = j;
+                     localNodeInfo->linearCoefs[nRowCols] = orgVarCoefficients[j];
+                     nRowCols++;
+                  }
+               }
+               assert( nRowCols > 0 );
+               // std::cout << "i = " << i << ", nRows = " << nRowCols << std::endl;
+               localNodeInfo->nLinearCoefs = nRowCols;
                localNodeInfo->linearLhs = lhs;
                localNodeInfo->linearRhs = rhs;
                localCutsList.push_back(localNodeInfo);
@@ -684,10 +861,22 @@ ScipParaDiffSubproblem::addLocalNodeInfo(
                delete [] localNodeInfo->idxLinearCoefsVars;
                delete [] localNodeInfo->linearCoefs;
                delete localNodeInfo;
+               if( removeConss == true )
+               {
+                  nRemoved++;
+                  continue;
+               }
+               else
+               {
+                  THROW_LOGICAL_ERROR1("Something wrong to make a local node info for original problem");
+               }
             }
          }
       }
+      delete [] orgVarIndexies;
+      delete [] orgVarCoefficients;
    }
+
 
    ScipParaDiffSubproblem *parentDiffSubproblem = scipParaSolver->getParentDiffSubproblem();
    std::list<LocalNodeInfoPtr> *conflictConsList = scipParaSolver->getConflictConsList();
@@ -771,6 +960,112 @@ ScipParaDiffSubproblem::addLocalNodeInfo(
          }
       }
    }
+
+#if SCIP_APIVERSION > 39
+   std::list<LocalNodeInfoPtr> bendersCutsList;
+
+   if( scipParaSolver->getParaParamSet()->getBoolParamValue(TransferBendersCuts) )
+   {
+      int nVars = SCIPgetNVars(scip);
+      SCIP_Var **vars = new SCIP_Var*[nVars];
+      SCIP_Real *values = new SCIP_Real[nVars];
+      int nActiveBenders =  SCIPgetNActiveBenders(scip);
+      SCIP_BENDERS** benders = SCIPgetBenders(scip);
+
+      for( int i = 0; i < nActiveBenders; i++ )
+      {
+         int nCuts = SCIPbendersGetNStoredCuts(benders[i]);
+         for (int cutidx = 0; cutidx < nCuts; cutidx++ )
+         {
+            int nVarsInCut = 0;
+            SCIP_Real  lhs = 0.0;
+            SCIP_Real  rhs = 0.0;
+            SCIP_CALL_ABORT( SCIPbendersGetStoredCutOrigData(benders[i], cutidx, &vars, &values, &lhs, &rhs, &nVarsInCut, nVars) );
+            assert(nVarsInCut <= nVars);
+	    LocalNodeInfo *localNodeInfo = new LocalNodeInfo;
+	    localNodeInfo->nLinearCoefs = nVarsInCut;
+	    localNodeInfo->idxLinearCoefsVars = new int[nVarsInCut];
+	    localNodeInfo->linearCoefs = new double[nVarsInCut];
+	    for( int j = 0; j < nVarsInCut; j++ )
+	    {
+	        if( scipParaSolver->isOriginalIndeciesMap() )
+                {
+                   localNodeInfo->idxLinearCoefsVars[j] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(vars[j]));
+                }
+	        else
+                {
+                   localNodeInfo->idxLinearCoefsVars[j] = SCIPvarGetIndex(vars[j]);
+                }
+	        localNodeInfo->linearCoefs[j] = values[j];
+            }
+            localNodeInfo->linearLhs = lhs;
+            localNodeInfo->linearRhs = rhs;
+            bendersCutsList.push_back(localNodeInfo);
+         }
+      }
+      delete [] vars;
+      delete [] values;
+   }
+
+   nParentConss = 0;
+   if( parentDiffSubproblem && parentDiffSubproblem->bendersLinearConss )
+   {
+      nParentConss +=  parentDiffSubproblem->bendersLinearConss->nLinearConss;
+   }
+
+   if( nParentConss > 0 || bendersCutsList.size() > 0 )
+   {
+      bendersLinearConss = new ScipParaDiffSubproblemLinearCons();
+      bendersLinearConss->nLinearConss = nParentConss + bendersCutsList.size();
+      scipParaSolver->updateNTransferredBendersCuts(bendersLinearConss->nLinearConss);
+      if( bendersLinearConss->nLinearConss > 0 )
+      {
+          bendersLinearConss->linearLhss = new SCIP_Real[bendersLinearConss->nLinearConss];
+          bendersLinearConss->linearRhss = new SCIP_Real[bendersLinearConss->nLinearConss];
+          bendersLinearConss->nLinearCoefs = new int[bendersLinearConss->nLinearConss];
+          bendersLinearConss->linearCoefs = new SCIP_Real*[bendersLinearConss->nLinearConss];
+          bendersLinearConss->idxLinearCoefsVars = new int*[bendersLinearConss->nLinearConss];
+
+         int i = 0;
+         for(; i < nParentConss; i++ )
+         {
+            bendersLinearConss->linearLhss[i] = parentDiffSubproblem->bendersLinearConss->linearLhss[i];
+            bendersLinearConss->linearRhss[i] = parentDiffSubproblem->bendersLinearConss->linearRhss[i];
+            bendersLinearConss->nLinearCoefs[i] = parentDiffSubproblem->bendersLinearConss->nLinearCoefs[i];
+            bendersLinearConss->linearCoefs[i] = new SCIP_Real[bendersLinearConss->nLinearCoefs[i]];
+            bendersLinearConss->idxLinearCoefsVars[i] = new int[bendersLinearConss->nLinearCoefs[i]];
+            for( int j = 0; j < bendersLinearConss->nLinearCoefs[i]; j++ )
+            {
+            	bendersLinearConss->linearCoefs[i][j] = parentDiffSubproblem->bendersLinearConss->linearCoefs[i][j];
+            	bendersLinearConss->idxLinearCoefsVars[i][j] = parentDiffSubproblem->bendersLinearConss->idxLinearCoefsVars[i][j];
+            }
+         }
+
+         int nBendersCuts = bendersCutsList.size();
+         for(; i < ( nParentConss + nBendersCuts ); i++ )
+         {
+            assert(!bendersCutsList.empty());
+            LocalNodeInfo *cutInfo = bendersCutsList.front();
+            bendersCutsList.pop_front();
+            bendersLinearConss->linearLhss[i] = cutInfo->linearLhs;
+            bendersLinearConss->linearRhss[i] = cutInfo->linearRhs;
+            bendersLinearConss->nLinearCoefs[i] = cutInfo->nLinearCoefs;
+            bendersLinearConss->linearCoefs[i] = new SCIP_Real[bendersLinearConss->nLinearCoefs[i]];
+            bendersLinearConss->idxLinearCoefsVars[i] = new int[bendersLinearConss->nLinearCoefs[i]];
+            for( int j = 0; j < bendersLinearConss->nLinearCoefs[i]; j++ )
+            {
+            	bendersLinearConss->linearCoefs[i][j] = cutInfo->linearCoefs[j];
+            	bendersLinearConss->idxLinearCoefsVars[i][j] = cutInfo->idxLinearCoefsVars[j];
+            }
+            delete [] cutInfo->idxLinearCoefsVars;
+            delete [] cutInfo->linearCoefs;
+            delete cutInfo;
+         }
+         assert( i == bendersLinearConss->nLinearConss );
+      }
+   }
+#endif
+
 }
 
 void
@@ -842,7 +1137,14 @@ ScipParaDiffSubproblem::addBoundDisjunctions(
                   {
                      if( scipParaSolver->isOriginalIndeciesMap( ))
                      {
-                        boundDisjunctions->idxBoundDisjunctionVars[nConss][v] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+                        if( scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar)) >= 0   )
+                        {
+                           boundDisjunctions->idxBoundDisjunctionVars[nConss][v] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+                        }
+                        else
+                        {
+                           break;
+                        }
                      }
                      else
                      {
@@ -882,6 +1184,20 @@ ScipParaDiffSubproblem::addBoundDisjunctions(
                   delete [] boundDisjunctions->boundsBoundDisjunction[nConss];
                   delete [] boundDisjunctions->boundTypesBoundDisjunction[nConss];
                   delete [] boundDisjunctions->idxBoundDisjunctionVars[nConss];
+                  boundDisjunctions->boundsBoundDisjunction[nConss] = 0;
+                  boundDisjunctions->boundTypesBoundDisjunction[nConss] = 0;
+                  boundDisjunctions->idxBoundDisjunctionVars[nConss] = 0;
+                  boundDisjunctions->nVarsBoundDisjunction[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionInitial[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionSeparate[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionEnforce[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionCheck[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionPropagate[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionLocal[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionModifiable[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionDynamic[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionRemovable[nConss] = 0;
+                  boundDisjunctions->flagBoundDisjunctionStickingatnode[nConss] = 0;
                }
             }
          }
@@ -933,7 +1249,14 @@ ScipParaDiffSubproblem::addBranchVarStats(
       {
          if( scipParaSolver->isOriginalIndeciesMap() )
          {
-            varBranchStats->idxBranchStatsVars[nOrgVars] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+            if( scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar)) >= 0   )
+            {
+               varBranchStats->idxBranchStatsVars[nOrgVars] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+            }
+            else
+            {
+               continue;
+            }
          }
          else
          {
@@ -1031,7 +1354,14 @@ ScipParaDiffSubproblem::addVarValueStats(
 
                if( scipParaSolver->isOriginalIndeciesMap() )
                {
-                  varValues->idxVarValueVars[varValues->nVarValueVars] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+                  if( scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar)) >= 0   )
+                  {
+                     varValues->idxVarValueVars[varValues->nVarValueVars] = scipParaSolver->getOriginalIndex(SCIPvarGetIndex(transformVar));
+                  }
+                  else
+                  {
+                     continue;
+                  }
                }
                else
                {

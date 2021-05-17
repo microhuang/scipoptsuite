@@ -1,1 +1,1 @@
-#define UG_GITHASH "6fe4c11"
+#define UG_GITHASH "4f78d9e"

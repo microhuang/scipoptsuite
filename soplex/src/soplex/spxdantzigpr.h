@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -35,20 +35,21 @@ namespace soplex
 
    See SPxPricer for a class documentation.
 */
-class SPxDantzigPR : public SPxPricer
+template <class R>
+class SPxDantzigPR : public SPxPricer<R>
 {
 private:
    int                   selectLeaveSparse();/**< sparse pricing method for leaving Simplex */
 
    SPxId
    selectEnterX();                                /**< choose the best entering index among columns and rows but prefer sparsity */
-   SPxId                 selectEnterSparseDim(Real& best,
+   SPxId                 selectEnterSparseDim(R& best,
          SPxId& id);   /**< sparse pricing method for entering Simplex (slack variables)*/
-   SPxId                 selectEnterSparseCoDim(Real& best,
+   SPxId                 selectEnterSparseCoDim(R& best,
          SPxId& id); /**< sparse pricing method for entering Simplex */
-   SPxId                 selectEnterDenseDim(Real& best,
+   SPxId                 selectEnterDenseDim(R& best,
          SPxId& id);    /**< selectEnter() in dense case (slack variables) */
-   SPxId                 selectEnterDenseCoDim(Real& best,
+   SPxId                 selectEnterDenseCoDim(R& best,
          SPxId& id);  /**< selectEnter() in dense case */
 public:
 
@@ -57,18 +58,18 @@ public:
    ///@{
    /// default constructor
    SPxDantzigPR()
-      : SPxPricer("Dantzig")
+      : SPxPricer<R>("Dantzig")
    {}
    /// copy constructor
    SPxDantzigPR(const SPxDantzigPR& old)
-      : SPxPricer(old)
+      : SPxPricer<R>(old)
    {}
    /// assignment operator
    SPxDantzigPR& operator=(const SPxDantzigPR& rhs)
    {
       if(this != &rhs)
       {
-         SPxPricer::operator=(rhs);
+         SPxPricer<R>::operator=(rhs);
       }
 
       return *this;
@@ -77,7 +78,7 @@ public:
    virtual ~SPxDantzigPR()
    {}
    /// clone function for polymorphism
-   inline virtual SPxPricer* clone() const
+   inline virtual SPxPricer<R>* clone() const
    {
       return new SPxDantzigPR(*this);
    }
@@ -94,4 +95,8 @@ public:
    ///@}
 };
 } // namespace soplex
+
+// For general tempalted functions
+#include "spxdantzigpr.hpp"
+
 #endif // _SPXDEFAULTPRR_H_

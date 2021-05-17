@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -53,7 +53,8 @@ namespace soplex
    #colUp[j] is nonzero, the \p j 'th variable will be set to its upper bound
    if it becomes primal.
 */
-class SPxWeightST : public SPxStarter
+template <class R>
+class SPxWeightST : public SPxStarter<R>
 {
 private:
 
@@ -63,16 +64,16 @@ private:
    ///
    DataArray < int > forbidden;
    ///
-   DataArray < Real >* weight;
+   Array < R >* weight;
    ///
-   DataArray < Real >* coWeight;
+   Array < R >* coWeight;
    ///@}
 
    //-----------------------------------
    /**@name Private helpers */
    ///@{
    ///
-   void setPrimalStatus(SPxBasis::Desc&, const SPxSolver&, const SPxId&);
+   void setPrimalStatus(typename SPxBasisBase<R>::Desc&, const SPxSolverBase<R>&, const SPxId&);
    ///@}
 
 protected:
@@ -81,9 +82,9 @@ protected:
    /**@name Protected data */
    ///@{
    /// weight value for LP rows.
-   DataArray < Real > rowWeight;
+   Array < R > rowWeight;
    /// weight value for LP columns.
-   DataArray < Real > colWeight;
+   Array < R > colWeight;
    /// set variable to rhs?.
    DataArray < bool > rowRight;
    /// set primal variable to upper bound.
@@ -98,7 +99,7 @@ protected:
        variables. It has been declared \c virtual in order to allow for
        derived classes to compute other weight values.
    */
-   virtual void setupWeights(SPxSolver& base);
+   virtual void setupWeights(SPxSolverBase<R>& base);
    ///@}
 
 public:
@@ -108,7 +109,7 @@ public:
    ///@{
    /// default constructor.
    SPxWeightST()
-      : SPxStarter("Weight")
+      : SPxStarter<R>("Weight")
    {
       weight = 0;
       coWeight = 0;
@@ -116,7 +117,7 @@ public:
    }
    /// copy constructor
    SPxWeightST(const SPxWeightST& old)
-      : SPxStarter(old)
+      : SPxStarter<R>(old)
       , forbidden(old.forbidden)
       , rowWeight(old.rowWeight)
       , colWeight(old.colWeight)
@@ -146,7 +147,7 @@ public:
    {
       if(this != &rhs)
       {
-         SPxStarter::operator=(rhs);
+         SPxStarter<R>::operator=(rhs);
          forbidden = rhs.forbidden;
          rowWeight = rhs.rowWeight;
          colWeight = rhs.colWeight;
@@ -178,7 +179,7 @@ public:
       coWeight = 0;
    }
    /// clone function for polymorphism
-   inline virtual SPxStarter* clone() const
+   inline virtual SPxStarter<R>* clone() const
    {
       return new SPxWeightST(*this);
    }
@@ -188,7 +189,7 @@ public:
    /**@name Generation of a start basis */
    ///@{
    /// generates start basis for loaded basis.
-   void generate(SPxSolver& base);
+   void generate(SPxSolverBase<R>& base);
    ///@}
 
    //-----------------------------------
@@ -201,4 +202,8 @@ public:
 };
 
 } // namespace soplex
+
+// For general templated functions
+#include "spxweightst.hpp"
+
 #endif // _SPXWEIGHTST_H_

@@ -173,6 +173,31 @@ EOF
 # End of AWK Scripts            #
 #################################
 
+: ${RUBBERBAND_UPLOAD:=no}
+: ${CHECKFAILS:=no}
+
+echo "----------- env ----------"
+env | sort
+echo "----------- end env ----------"
+
+if [ "${PERFORMANCE}" == "performance" ]; then
+  RUBBERBAND_UPLOAD=yes
+  CHECKFAILS=yes
+  # MODE is performance
+elif [ "${PERFORMANCE}" == "debug" ]; then
+  RUBBERBAND_UPLOAD=no
+  CHECKFAILS=yes
+  # MODE is debug
+elif [ "${PERFORMANCE}" == "mergerequest" ]; then
+  RUBBERBAND_UPLOAD=yes
+  CHECKFAILS=no
+  # MODE is performance
+elif [ "${PERFORMANCE}" == "valgrind" ]; then
+  RUBBERBAND_UPLOAD=no
+  CHECKFAILS=yes
+  MODE=relwithdebinfo
+fi
+
 # EXECUTABLE has form 'scipoptspx_bugfix_20180401/bin/scip', we only want 'scipoptspx'
 SCIP_BUILDDIR=$(echo ${EXECUTABLE}| cut -d '/' -f 1|cut -d '_' -f 1)
 SOPLEX_HASH=$(${PWD}/${EXECUTABLE} -v | grep "  SoPlex" | grep "GitHash: .*]" -o|cut -d ' ' -f 2|cut -d ']' -f 1)
@@ -184,20 +209,32 @@ if [ "${PERFORMANCE}" == "performance" ]; then
   touch $RBDB
   OLDTIMESTAMP=$(tail -n 1 ${RBDB}|cut -d ' ' -f 1)
 elif [ "${PERFORMANCE}" == "mergerequest" ]; then
-  RBDB="${PWD}/performance_mergerequest_${OUTPUTDIR}"
+  RBDB="${PWD}/${MODE}_mergerequest_${TESTSET}_${gitlabMergeRequestIid}_rbdb.txt"
   touch $RBDB
 fi
 
-SEED=0
-while [ ${SEED} -le ${SEEDS} ]; do
+if [ "$PSMESSAGE" != "" ]; then
+  PSMESSAGE="
+PS: $PSMESSAGE"
+fi
+
+: ${GLBSEEDSHIFT:=0}
+: ${STARTPERM:=0}
+
+SEEDSBND=$(expr ${SEEDS} + ${GLBSEEDSHIFT})
+PERMUTEBND=$(expr ${PERMUTE} + ${STARTPERM})
+
+SEED=${GLBSEEDSHIFT}
+
+while [ "${SEED}" -le "${SEEDSBND}" ]; do
   # get ending given by seed
   if [ "${SEED}" == "0" ]; then
     SEED_ENDING=""
   else
     SEED_ENDING="-s${SEED}"
   fi
-  PERM=0
-  while [ ${PERM} -le ${PERMUTE} ]; do
+  PERM=${STARTPERM}
+  while [ "${PERM}" -le "${PERMUTEBND}" ]; do
     # get ending given by permutation
     if [ "${PERM}" == "0" ]; then
       PERM_ENDING=""
@@ -208,18 +245,18 @@ while [ ${SEED} -le ${SEEDS} ]; do
     # we use a name that is unique per test sent to the cluster (a jenkins job
     # can have several tests sent to the cluster, that is why the jenkins job
     # name (i.e, the directory name) is not enough)
-    if [ "${PERFORMANCE}" != "mergerequest" ]; then
-      DATABASE="/nfs/OPTI/adm_timo/databases/${GITBRANCH}_${MODE}_${TESTSET}_${SETTINGS}_${SCIP_BUILDDIR}${SEED_ENDING}${PERM_ENDING}.txt"
-    elif [ "${PERFORMANCE}" == "mergerequest" ]; then
+    if [ "${PERFORMANCE}" == "mergerequest" ]; then
       DATABASE="${PWD}/${GITBRANCH}_${MODE}_${TESTSET}_${SETTINGS}_${SCIP_BUILDDIR}${SEED_ENDING}${PERM_ENDING}.txt"
-      touch $DATABASE
+    elif [ "${PERFORMANCE}" != "mergerequest" ]; then
+      DATABASE="/nfs/OPTI/adm_timo/databases/${IDENT}${GITBRANCH}_${MODE}_${TESTSET}_${SETTINGS}_${SCIP_BUILDDIR}${SEED_ENDING}${PERM_ENDING}.txt"
     fi
+    touch ${DATABASE}
     TMPDATABASE="${DATABASE}.tmp"
     STILLFAILING="${DATABASE}_SF.tmp"
     OUTPUT="${DATABASE}_output.tmp"
     touch ${STILLFAILING}
 
-    SUBJECTINFO="[BRANCH: $GITBRANCH] [TESTSET: $TESTSET] [SETTINGS: $SETTINGS] [SCIP_BUILDDIR: $SCIP_BUILDDIR] [GITHASH: $GITHASH] [PERM: $PERM] [SEED: $SEED] [MODE: $MODE]"
+    SUBJECTINFO="[BRANCH: $GITBRANCH] [TESTSET: $TESTSET] [SETTINGS: $SETTINGS] [SCIP_BUILDDIR: $SCIP_BUILDDIR] [GITHASH: $GITHASH] [PERM: $PERM] [SEED: $SEED] [MODE: $MODE] ${IDENT}"
 
     AWKARGS="-v GITBRANCH=$GITBRANCH -v TESTSET=$TESTSET -v SETTINGS=$SETTINGS -v SCIP_BUILDDIR=$SCIP_BUILDDIR -v DATABASE=$DATABASE -v TMPDATABASE=$TMPDATABASE -v STILLFAILING=$STILLFAILING -v PERM=$PERM -v SEED=$SEED -v MODE=$MODE"
     echo $AWKARGS
@@ -233,7 +270,7 @@ while [ ${SEED} -le ${SEEDS} ]; do
     fi
 
     EMAILFROM="adm_timo <timo-admin@zib.de>"
-    EMAILTO="adm_timo <timo-admin@zib.de>"
+    EMAILTO="<timo-admin@zib.de>"
 
     if [ "${gitlabUserEmail}" != "" ]; then
       EMAILTO="${gitlabUserEmail}"
@@ -266,61 +303,65 @@ while [ ${SEED} -le ${SEEDS} ]; do
     echo "Evaluating the run and uploading it to rubberband."
     cd check/
     PERF_MAIL=""
-    if [ "${PERFORMANCE}" = "performance" ] || [ "${PERFORMANCE}" = "mergerequest" ]; then
+    if [ "${RUBBERBAND_UPLOAD}" == "yes" ]; then
       # add tags to uploaded run
-      export RBCLI_TAG="${GITBRANCH}"
-      ./evalcheck_cluster.sh -R ${EVALFILE} > ${OUTPUT}
+      export RBCLI_TAG="${GITBRANCH},${PERFORMANCE}"
+      if [ "${MODE}" == "debug" ]; then
+        ./evalcheck_cluster.sh -E ${EVALFILE} > ${OUTPUT}
+      else
+        ./evalcheck_cluster.sh -U ${EVALFILE} > ${OUTPUT}
+      fi
       NEWRBID=$(cat $OUTPUT | grep "rubberband.zib" |sed -e 's|https://rubberband.zib.de/result/||')
-      echo "${NEWTIMESTAMP} ${NEWRBID} p=${PERM} s=${SEED} fullgh=${FULLGITHASH} soplexhash=${SOPLEX_HASH}" >> $RBDB
+      if [ "${SOPLEX_HASH}" != "" ]; then
+        echo "${NEWTIMESTAMP} ${NEWRBID} p=${PERM} s=${SEED} fullgh=${FULLGITHASH} soplexhash=${SOPLEX_HASH}" >> $RBDB
+      else
+        echo "${NEWTIMESTAMP} ${NEWRBID} p=${PERM} s=${SEED} fullgh=${FULLGITHASH}" >> $RBDB
+      fi
     else
-      ./evalcheck_cluster.sh -r "-v useshortnames=0" ${EVALFILE} > ${OUTPUT}
+      ./evalcheck_cluster.sh "-v useshortnames=0" ${EVALFILE} > ${OUTPUT}
     fi
     cat ${OUTPUT}
     rm ${OUTPUT}
     cd ..
 
-    if [ "${PERFORMANCE}" != "mergerequest" ]; then
+    if [ "${CHECKFAILS}" == "yes" ]; then
       # check for fixed instances
       echo "Checking for fixed instances."
       RESOLVEDINSTANCES=$(awk $AWKARGS "$awkscript_checkfixedinstances" $RESFILE $DATABASE)
       echo "Temporary database: $TMPDATABASE\n"
       mv $TMPDATABASE $DATABASE
-    fi
 
-    ###################
-    # Check for fails #
-    ###################
-
-    # if there are fails; process them and send email when there are new ones
-    NFAILS=$(grep -c fail $RESFILE)
-    if [ $NFAILS -gt 0 ]; then
-      echo "Detected ${NFAILS} fails."
-      ## read all known bugs
-      ERRORINSTANCES=$(awk $AWKARGS "$awkscript_readknownbugs" $DATABASE $RESFILE)
-      STILLFAILINGDB=$(cat ${STILLFAILING})
-
-      # check if there are new fails!
-      if [ -n "$ERRORINSTANCES" ]; then
+      if [ "${PERFORMANCE}" == "debug" ]; then
         ###################
-        ## Process fails ##
+        # Check for fails #
         ###################
 
-        # get SCIP's header
-        SCIP_HEADER=$(awk "$awkscript_scipheader" $OUTFILE)
+        # if there are fails; process them and send email when there are new ones
+        NFAILS=$(grep -c fail $RESFILE)
+        if [ $NFAILS -gt 0 ]; then
+          echo "Detected ${NFAILS} fails."
+          ## read all known bugs
+          ERRORINSTANCES=$(awk $AWKARGS "$awkscript_readknownbugs" $DATABASE $RESFILE)
+          STILLFAILINGDB=$(cat ${STILLFAILING})
 
-        if [ "${PERFORMANCE}" != "performance" ]; then
-          if [ "${PERFORMANCE}" != "mergerequest" ]; then
+          # check if there are new fails!
+          if [ -n "$ERRORINSTANCES" ]; then
+            ###################
+            ## Process fails ##
+            ###################
+
+            # get SCIP's header
+            SCIP_HEADER=$(awk "$awkscript_scipheader" $OUTFILE)
+
             # Get assertions and instance where they were generated
             ERRORS_INFO=$(echo "${ERRORINSTANCES}" | awk "$awkscript_findasserts" - ${ERRFILE})
-          fi
-        fi
 
-        ###############
-        # ERROR EMAIL #
-        ###############
-        echo "Found new errors, sending emails."
-        SUBJECT="FAIL ${SUBJECTINFO}"
-        echo -e "There are newly failed instances.
+            ###############
+            # ERROR EMAIL #
+            ###############
+            echo "Found new errors, sending emails."
+            SUBJECT="FAIL ${SUBJECTINFO}"
+            echo -e "There are newly failed instances.
 The instances run with the following SCIP version and setting file:
 
 \`\`\`
@@ -331,6 +372,9 @@ ${SCIP_HEADER}
 
 SETTINGS FILE:
 ${SETFILE}
+
+BINARY:
+${PWD}/${EXECUTABLE}
 \`\`\`
 
 Here is a list of the instances and the assertion that fails (fails with _fail (abort)_), if any:
@@ -347,15 +391,16 @@ $ERRFILE
 $OUTFILE
 $RESFILE
 
-Please note that they might be deleted soon" | mailx -s "$SUBJECT" -r "$EMAILFROM" $EMAILTO
-      else
-        echo "No new errors, sending no emails."
+Please note that they might be deleted soon
+${PSMESSAGE}" | mailx -s "$SUBJECT" -r "$EMAILFROM" $EMAILTO
+          else
+            echo "No new errors, sending no emails."
+          fi
+        else
+          echo "No fails detected."
+        fi
       fi
-    else
-      echo "No fails detected."
-    fi
 
-    if [ "${PERFORMANCE}" != "mergerequest" ]; then
       # send email if there are fixed instances
       if [ -n "$RESOLVEDINSTANCES" ]; then
         #########################
@@ -413,8 +458,8 @@ if [ "${PERFORMANCE}" == "performance" ]; then
 ")
 
   # add a comparison for all permutations
-  PERM=0
-  while [ $PERM -le $PERMUTE ]; do
+  PERM=${STARTPERM}
+  while [ ${PERM} -le ${PERMUTEBND} ]; do
     LASTWEEK=$(grep -e ${OLDTIMESTAMP} ${RBDB}|grep -P "p=${PERM}($| )" |cut -d ' ' -f 2)
     THISWEEK=$(grep -e ${NEWTIMESTAMP} ${RBDB}|grep -P "p=${PERM}($| )" |cut -d ' ' -f 2)
 
@@ -442,21 +487,48 @@ Compare to the release: https://rubberband.zib.de/result/${URLSTR}"
   echo -e "$PERF_MAIL" | mailx -s "$SUBJECT" -r "$EMAILFROM" $EMAILTO
 
 elif [ "${PERFORMANCE}" == "mergerequest" ]; then
-
   # collect all ids with timestamps OLDTIMESTAMP NEWTIMESTAMP in RBIDS
-  RBDB_STRS=$(grep -e "${NEWTIMESTAMP}" ${RBDB}|cut -d ' ' -f 2)
+  MAINRBDB="/nfs/OPTI/adm_timo/databases/rbdb/${GITBRANCH}_${MODE}_${TESTSET}_*_${SCIP_BUILDDIR}_rbdb.txt"
 
-  URLSTR=$(geturl "${RBDB_STRS}
-${COMPARERBIDS}")
+  COMPAREIDS=""
+
+  COUNT_S=0
+  while [ "${COUNT_S}" -le "${SEEDSBND}" ]; do
+    COUNT_P=0
+    while [ "${COUNT_P}" -le "${PERMUTEBND}" ]; do
+      if [ "${MODE}" = "debug" ]; then
+        RBDB_STRS=$(grep -e "\(${COMPAREHASH}\|${FULLGITHASH}\|${NEWTIMESTAMP}\)" ${RBDB} | grep -P "p=${COUNT_P} s=${COUNT_S}")
+      else
+        RBDB_STRS=$(grep -e "\(${COMPAREHASH}\|${FULLGITHASH}\|${NEWTIMESTAMP}\)" ${RBDB} ${MAINRBDB} | grep -P "p=${COUNT_P} s=${COUNT_S}")
+      fi
+      if [ "${RBDB_STRS}" != "" ]; then
+        if [ "${MODE}" = "debug" ]; then
+          COMPAREIDS="${COMPAREIDS}
+${RBDB_STRS}"
+        elif [ 2 -le $(echo "${RBDB_STRS}" |wc -l) ]; then
+          COMPAREIDS="${COMPAREIDS}
+${RBDB_STRS}"
+        fi
+      fi
+
+      COUNT_P=$((COUNT_P + 1))
+    done
+    COUNT_S=$((COUNT_S + 1))
+  done
+
+  RBDB_STRS=$(echo "${COMPAREIDS}" |cut -d ' ' -f 2|tac|head -n -1|tac)
+  URLSTR=$(geturl "${RBDB_STRS}")
 
   PERF_MAIL=$(echo "The results of the mergerequest run are ready. Take a look at https://rubberband.zib.de/result/${URLSTR}
 ")
 
-  SUBJECT="MERGEREQUEST PERFORMANCE RUN ${SUBJECTINFO}"
+  SUBJECT="MERGEREQUEST ${PERFORMANCE} RUN ${SUBJECTINFO}"
   echo -e "$PERF_MAIL" | mailx -s "$SUBJECT" -r "$EMAILFROM" $EMAILTO
 
   PERF_MAIL_ESC=${PERF_MAIL//
 /\\n}
+  SUBJECT_ESC=${SUBJECT//
+/\\n}
 
-  curl -X POST https://git.zib.de/api/v4/projects/${gitlabMergeRequestTargetProjectId}/merge_requests/${gitlabMergeRequestIid}/notes -H "Content-Type: application/json" -d '{"body":"'"${PERF_MAIL_ESC}"'"}'  --header "PRIVATE-TOKEN: ${gitlabPrivateToken}"
+  curl -X POST https://git.zib.de/api/v4/projects/${gitlabMergeRequestTargetProjectId}/merge_requests/${gitlabMergeRequestIid}/notes -H "Content-Type: application/json" -d '{"body":"'"${SUBJECT_ESC}${PERF_MAIL_ESC}"'"}'  --header "PRIVATE-TOKEN: ${gitlabPrivateToken}"
 fi

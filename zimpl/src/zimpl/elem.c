@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,11 +27,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <stdbool.h>
+//#include <assert.h>
 
 #include "zimpl/lint.h"
-#include <stdbool.h>
 #include "zimpl/mshell.h"
+
 #include "zimpl/numb.h"
 #include "zimpl/elem.h"
 #include "zimpl/mme.h"
@@ -212,9 +213,10 @@ bool elem_is_valid(const Elem* elem)
 
 Elem* elem_copy(const Elem* source)
 {
+   assert(elem_is_valid(source));
+
    Elem* elem = new_elem();
 
-   assert(elem_is_valid(source));
    assert(elem_is_valid(elem));
 
    if (source->type != ELEM_NUMB)
@@ -334,7 +336,7 @@ unsigned int elem_hash(const Elem* elem)
       break;
    case ELEM_FREE :
    default :
-      abort();
+      abort(); //lint !e453 function previously designated pure, calls impure function 'abort'
    }
    return hcode;
 }

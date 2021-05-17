@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -38,16 +38,18 @@ namespace soplex
 
    See SPxPricer for a class documentation.
 */
-class SPxAutoPR : public SPxPricer
+template <class R>
+class SPxAutoPR : public SPxPricer<R>
 {
 private:
 
    int            switchIters;   ///< number of iterations before switching pricers
-   SPxPricer*     activepricer;  ///< pointer to currently selected pricer
-   SPxDevexPR     devex;         ///< internal Devex pricer
-   SPxSteepExPR     steep;         ///< internal Steepest edge pricer
+   SPxPricer<R>*     activepricer;  ///< pointer to currently selected pricer
+   SPxDevexPR<R>     devex;         ///< internal Devex pricer
+   SPxSteepExPR<R>     steep;         ///< internal Steepest edge pricer
 
-   bool setActivePricer(SPxSolver::Type type);          ///< switches active pricing method
+   bool setActivePricer(typename SPxSolverBase<R>::Type
+                        type);          ///< switches active pricing method
 
 public:
 
@@ -56,7 +58,7 @@ public:
    ///@{
    /// default constructor
    SPxAutoPR()
-      : SPxPricer("Auto")
+      : SPxPricer<R>("Auto")
       , switchIters(10000)
       , activepricer(&devex)
       , devex()
@@ -64,7 +66,7 @@ public:
    {}
    /// copy constructor
    SPxAutoPR(const SPxAutoPR& old)
-      : SPxPricer(old)
+      : SPxPricer<R>(old)
       , switchIters(old.switchIters)
       , devex(old.devex)
       , steep(old.steep)
@@ -81,7 +83,7 @@ public:
    {
       if(this != &rhs)
       {
-         SPxPricer::operator=(rhs);
+         SPxPricer<R>::operator=(rhs);
          switchIters = rhs.switchIters;
          devex = rhs.devex;
          steep = rhs.steep;
@@ -100,7 +102,7 @@ public:
    virtual ~SPxAutoPR()
    {}
    /// clone function for polymorphism
-   inline virtual SPxPricer* clone() const
+   inline virtual SPxPricer<R>* clone() const
    {
       return new SPxAutoPR(*this);
    }
@@ -114,13 +116,13 @@ public:
    /// clear the data
    void clear();
    /// set epsilon of internal pricers
-   void setEpsilon(Real eps);
+   void setEpsilon(R eps);
    /// set the solver
-   virtual void load(SPxSolver* base);
+   virtual void load(SPxSolverBase<R>* base);
    /// set entering/leaving algorithm
-   virtual void setType(SPxSolver::Type);
+   virtual void setType(typename SPxSolverBase<R>::Type);
    /// set row/column representation
-   virtual void setRep(SPxSolver::Representation);
+   virtual void setRep(typename SPxSolverBase<R>::Representation);
    ///
    virtual int selectLeave();
    ///
@@ -132,4 +134,8 @@ public:
    ///@}
 };
 } // namespace soplex
+
+// For general templated functions
+#include "spxautopr.hpp"
+
 #endif // _SPXAUTOPR_H_

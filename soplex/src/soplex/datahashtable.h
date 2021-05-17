@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -24,6 +24,7 @@
 #include <limits.h>
 
 #include "soplex/spxdefines.h"
+#include "soplex/array.h"
 
 #define   HASHTABLE_FILLFACTOR   0.7
 
@@ -104,7 +105,7 @@ private:
    /**@name Data */
    ///@{
    /// stores all elements of the hash table
-   DataArray < Elem > m_elem;
+   Array < Elem > m_elem;
    /// increment added to hash index, if allready used
    int m_hashsize;
    /// current number of entries in the hash table
@@ -140,7 +141,7 @@ public:
    {
       int i = index(h);
 
-      return (i >= 0) ? &m_elem[i].info : 0;
+      return (i >= 0) ? &m_elem[i].info : nullptr;
    }
    /// references \a Info of \a HashItem \p h.
    /** Index operator for accessing the \a Info associated to
@@ -171,7 +172,7 @@ public:
 
       assert(m_used < m_elem.size());
 
-      int i;
+      decltype(m_elem.size()) i;
 
       for(i = (*m_hashfun)(&h) % m_elem.size();
             m_elem[i].stat == Elem::USED;
@@ -192,8 +193,12 @@ public:
    /// remove \a HashItem \p h from the DataHashTable.
    void remove(const HashItem& h)
    {
-      assert(has(h));
-      m_elem[index(h)].stat = Elem::RELEASED;
+      int i = index(h);
+
+      if(i < 0)
+         return;
+
+      m_elem[i].stat = Elem::RELEASED;
       m_used--;
       assert(!has(h));
    }
@@ -214,7 +219,7 @@ public:
     */
    void reMax(int newSize = -1, int newHashSize = 0)
    {
-      DataArray< Elem > save(m_elem);
+      Array< Elem > save(m_elem);
 
       m_elem.reSize(newSize < m_used ? m_used : newSize);
 
@@ -378,7 +383,7 @@ private:
     */
    int autoHashSize() const
    {
-      int oldsize = m_elem.size();
+      auto oldsize = m_elem.size();
 
       int left = 0;
       int right = nprimes - 1;
@@ -463,8 +468,8 @@ private:
 
       assert(m_elem.size() > 0);
 
-      int i = (*m_hashfun)(&h) % m_elem.size();
-      int j = i;
+      auto i = (*m_hashfun)(&h) % m_elem.size();
+      auto j = i;
 
       while(m_elem[i].stat != Elem::FREE)
       {

@@ -6,7 +6,7 @@
 /*                  of the branch-cut-and-price framework                    */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/* Copyright (C) 2010-2019 Operations Research, RWTH Aachen University       */
+/* Copyright (C) 2010-2020 Operations Research, RWTH Aachen University       */
 /*                         Zuse Institute Berlin (ZIB)                       */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -178,7 +178,7 @@ SCIP_RETCODE Seeedpool::calculateDualvalsOptimalOrigLP()
   // SCIPincludeDefaultPlugins(scipcopy);
 
 
-   SCIPcopy(scip, scipcopy, NULL, origtocopiedconss, "", FALSE, FALSE, FALSE, &valid );
+   SCIPcopy(scip, scipcopy, NULL, origtocopiedconss, "", FALSE, FALSE, FALSE, FALSE, &valid );
 
    nconss = getNConss();
 
@@ -3570,7 +3570,7 @@ void Seeedpool::addUserCandidatesNBlocks(
    )
 {
    bool alreadyIn = false;
-   for( size_t i = 0; i < candidatesNBlocks.size(); ++i )
+   for( size_t i = 0; i < usercandidatesnblocks.size(); ++i )
    {
       if( usercandidatesnblocks[i] == candidate )
       {
@@ -3757,7 +3757,7 @@ ConsClassifier* Seeedpool::createConsClassifierForSCIPConstypes()
       SCIP_CONS* cons;
       bool found = false;
       cons = getConsForIndex( i );
-      consType cT = GCGconsGetType( cons );
+      consType cT = GCGconsGetType( scip, cons );
       size_t constype;
 
       /** check whether the constraint's constype is new */
@@ -3772,7 +3772,7 @@ ConsClassifier* Seeedpool::createConsClassifierForSCIPConstypes()
       /** if it is new, create a new classindex */
       if( ! found )
       {
-         foundConstypes.push_back( GCGconsGetType( cons ) );
+         foundConstypes.push_back( GCGconsGetType( scip, cons ) );
          classForCons[i] = foundConstypes.size() - 1;
       }
       else
@@ -5740,7 +5740,7 @@ SCIP_RETCODE Seeedpool::writeMatrix(
    (void) SCIPsnprintf(problemname, SCIP_MAXSTRLEN, "%s", GCGgetFilename(scip));
    SCIPsplitFilename(problemname, NULL, &outputname, NULL, NULL);
 
-   strcat(outputname, ".png");
+   strcat(outputname, ".pdf");
    strcpy(filename2, filename);
 
    SCIPinfoMessage(scip, NULL, "filename for matrix plot is %s \n", filename );

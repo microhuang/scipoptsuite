@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -52,6 +52,9 @@ ParaSolverTerminationStateTh::createDatatype(
          nTransferredLocalCutsFromSolver,
          minTransferredLocalCutsFromSolver,
          maxTransferredLocalCutsFromSolver,
+         nTransferredBendersCutsFromSolver,
+         minTransferredBendersCutsFromSolver,
+         maxTransferredBendersCutsFromSolver,
          nTotalRestarts,
          minRestarts,
          maxRestarts,
@@ -112,6 +115,9 @@ ParaSolverTerminationStateTh::receive(
    nTransferredLocalCutsFromSolver = received->nTransferredLocalCutsFromSolver;
    minTransferredLocalCutsFromSolver= received->minTransferredLocalCutsFromSolver;
    maxTransferredLocalCutsFromSolver= received->maxTransferredLocalCutsFromSolver;
+   nTransferredBendersCutsFromSolver = received->nTransferredBendersCutsFromSolver;
+   minTransferredBendersCutsFromSolver= received->minTransferredBendersCutsFromSolver;
+   maxTransferredBendersCutsFromSolver= received->maxTransferredBendersCutsFromSolver;
    nTotalRestarts= received->nTotalRestarts;
    minRestarts= received->minRestarts;
    maxRestarts= received->maxRestarts;

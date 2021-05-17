@@ -3,22 +3,23 @@
 /*                  This file is part of the program and library             */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SCIP is distributed under the terms of the ZIB Academic License.         */
 /*                                                                           */
 /*  You should have received a copy of the ZIB Academic License              */
-/*  along with SCIP; see the file COPYING. If not visit scip.zib.de.         */
+/*  along with SCIP; see the file COPYING. If not visit scipopt.org.         */
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**@file   scip_cut.c
+ * @ingroup OTHER_CFILES
  * @brief  public methods for cuts and aggregation rows
  * @author Tobias Achterberg
  * @author Timo Berthold
  * @author Gerald Gamrath
- * @author Robert Lion Gottwald
+ * @author Leona Gottwald
  * @author Stefan Heinz
  * @author Gregor Hendel
  * @author Thorsten Koch
@@ -161,7 +162,7 @@ SCIP_Real SCIPgetVectorEfficacyNorm(
       break;
    default:
       SCIPerrorMessage("invalid efficacy norm parameter '%c'\n", scip->set->sepa_efficacynorm);
-      assert(FALSE);
+      assert(FALSE); /*lint !e506*/
    }
 
    return norm;

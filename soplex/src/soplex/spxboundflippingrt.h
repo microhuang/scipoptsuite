@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -29,7 +29,6 @@
 
 namespace soplex
 {
-struct Compare;
 
 /**@brief   Bound flipping ratio test ("long step dual") for SoPlex.
    @ingroup Algo
@@ -48,7 +47,8 @@ struct Compare;
 
    See SPxRatioTester for a class documentation.
 */
-class SPxBoundFlippingRT : public SPxFastRT
+template <class R>
+class SPxBoundFlippingRT : public SPxFastRT<R>
 {
 private:
    /**@name substructures */
@@ -66,7 +66,7 @@ private:
     */
    struct Breakpoint
    {
-      Real               val;                /**< breakpoint value (step length) */
+      R               val;                /**< breakpoint value (step length) */
       int                idx;                /**< index of corresponding row/column */
       BreakpointSource   src;                /**< origin of breakpoint, i.e. vector which was searched */
    };
@@ -85,7 +85,7 @@ private:
 
       const Breakpoint*  entry;
 
-      Real operator()(
+      R operator()(
          Breakpoint      i,
          Breakpoint      j
       ) const
@@ -100,13 +100,13 @@ private:
    ///@{
    bool                  enableBoundFlips;   /**< enable or disable long steps in BoundFlippingRT */
    bool                  enableRowBoundFlips;/**< enable bound flips also for row representation */
-   Real
+   R
    flipPotential;      /**< tracks bound flip history and decides which ratio test to use */
    int                   relax_count;        /**< count rounds of ratio test */
-   DataArray<Breakpoint> breakpoints;        /**< array of breakpoints */
-   SSVector
+   Array<Breakpoint> breakpoints;        /**< array of breakpoints */
+   SSVectorBase<R>
    updPrimRhs;         /**< right hand side vector of additional system to be solved after the ratio test */
-   SSVector
+   SSVectorBase<R>
    updPrimVec;         /**< allocation of memory for additional solution vector */
    ///@}
 
@@ -116,10 +116,10 @@ private:
       int&               minIdx,             /**< index to current minimal breakpoint */
       const int*         idx,                /**< pointer to indices of current vector */
       int                nnz,                /**< number of nonzeros in current vector */
-      const Real*        upd,                /**< pointer to update values of current vector */
-      const Real*        vec,                /**< pointer to values of current vector */
-      const Real*        upp,                /**< pointer to upper bound/rhs of current vector */
-      const Real*        low,                /**< pointer to lower bound/lhs of current vector */
+      const R*        upd,                /**< pointer to update values of current vector */
+      const R*        vec,                /**< pointer to values of current vector */
+      const R*        upp,                /**< pointer to upper bound/rhs of current vector */
+      const R*        low,                /**< pointer to lower bound/lhs of current vector */
       BreakpointSource   src                 /**< type of vector (pVec or coPvec)*/
    );
 
@@ -129,41 +129,41 @@ private:
       int&               minIdx,             /**< index to current minimal breakpoint */
       const int*         idx,                /**< pointer to indices of current vector */
       int                nnz,                /**< number of nonzeros in current vector */
-      const Real*        upd,                /**< pointer to update values of current vector */
-      const Real*        vec,                /**< pointer to values of current vector */
-      const Real*        upp,                /**< pointer to upper bound/rhs of current vector */
-      const Real*        low,                /**< pointer to lower bound/lhs of current vector */
+      const R*        upd,                /**< pointer to update values of current vector */
+      const R*        vec,                /**< pointer to values of current vector */
+      const R*        upp,                /**< pointer to upper bound/rhs of current vector */
+      const R*        low,                /**< pointer to lower bound/lhs of current vector */
       BreakpointSource   src                 /**< type of vector (pVec or coPvec)*/
    );
 
    /** get values for entering index and perform shifts if necessary */
    bool getData(
-      Real&              val,
+      R&              val,
       SPxId&             enterId,
       int                idx,
-      Real               stab,
-      Real               degeneps,
-      const Real*        upd,
-      const Real*        vec,
-      const Real*        low,
-      const Real*        upp,
+      R               stab,
+      R               degeneps,
+      const R*        upd,
+      const R*        vec,
+      const R*        low,
+      const R*        upp,
       BreakpointSource   src,
-      Real               max
+      R               max
    );
 
    /** get values for leaving index and perform shifts if necessary */
    bool getData(
-      Real&              val,
+      R&              val,
       int&             leaveIdx,
       int                idx,
-      Real               stab,
-      Real               degeneps,
-      const Real*        upd,
-      const Real*        vec,
-      const Real*        low,
-      const Real*        upp,
+      R               stab,
+      R               degeneps,
+      const R*        upd,
+      const R*        vec,
+      const R*        low,
+      const R*        upp,
       BreakpointSource   src,
-      Real               max
+      R               max
    );
 
    /** perform necessary bound flips to restore dual feasibility */
@@ -187,7 +187,7 @@ public:
    ///@{
    /// default constructor
    SPxBoundFlippingRT()
-      : SPxFastRT("Bound Flipping")
+      : SPxFastRT<R>("Bound Flipping")
       , enableBoundFlips(true)
       , enableRowBoundFlips(false)
       , flipPotential(1)
@@ -198,7 +198,7 @@ public:
    {}
    /// copy constructor
    SPxBoundFlippingRT(const SPxBoundFlippingRT& old)
-      : SPxFastRT(old)
+      : SPxFastRT<R>(old)
       , enableBoundFlips(old.enableBoundFlips)
       , enableRowBoundFlips(old.enableRowBoundFlips)
       , flipPotential(1)
@@ -212,7 +212,7 @@ public:
    {
       if(this != &rhs)
       {
-         SPxFastRT::operator=(rhs);
+         SPxFastRT<R>::operator=(rhs);
       }
 
       enableBoundFlips = rhs.enableBoundFlips;
@@ -225,7 +225,7 @@ public:
    virtual ~SPxBoundFlippingRT()
    {}
    /// clone function for polymorphism
-   inline virtual SPxRatioTester* clone() const
+   inline virtual SPxRatioTester<R>* clone() const
    {
       return new SPxBoundFlippingRT(*this);
    }
@@ -236,13 +236,13 @@ public:
    ///@{
    ///
    virtual int selectLeave(
-      Real&              val,
-      Real               enterTest,
+      R&              val,
+      R               enterTest,
       bool               polish = false
    );
    ///
    virtual SPxId selectEnter(
-      Real&              val,
+      R&              val,
       int                leaveIdx,
       bool               polish = false
    );
@@ -260,4 +260,7 @@ public:
 };
 
 } // namespace soplex
+
+#include "spxboundflippingrt.hpp"
+
 #endif // _SPXBOUNDFLIPPINGRT_H_

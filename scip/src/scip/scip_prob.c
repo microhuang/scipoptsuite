@@ -3,22 +3,23 @@
 /*                  This file is part of the program and library             */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SCIP is distributed under the terms of the ZIB Academic License.         */
 /*                                                                           */
 /*  You should have received a copy of the ZIB Academic License              */
-/*  along with SCIP; see the file COPYING. If not visit scip.zib.de.         */
+/*  along with SCIP; see the file COPYING. If not visit scipopt.org.         */
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**@file   scip_prob.c
+ * @ingroup OTHER_CFILES
  * @brief  public methods for global and local (sub)problems
  * @author Tobias Achterberg
  * @author Timo Berthold
  * @author Gerald Gamrath
- * @author Robert Lion Gottwald
+ * @author Leona Gottwald
  * @author Stefan Heinz
  * @author Gregor Hendel
  * @author Thorsten Koch
@@ -38,6 +39,7 @@
 #include "scip/concurrent.h"
 #include "scip/conflictstore.h"
 #include "scip/cons.h"
+#include "scip/dcmp.h"
 #include "scip/debug.h"
 #include "scip/lp.h"
 #include "scip/pricer.h"
@@ -136,6 +138,8 @@ SCIP_RETCODE SCIPcreateProb(
 
    /* initialize reoptimization structure, if needed */
    SCIP_CALL( SCIPenableReoptimization(scip, scip->set->reopt_enable) );
+
+   SCIP_CALL( SCIPdecompstoreCreate(&scip->decompstore, SCIPblkmem(scip), SCIP_DECOMPSTORE_CAPA) );
 
    return SCIP_OKAY;
 }
@@ -697,12 +701,6 @@ SCIP_RETCODE SCIPfreeProb(
    transsolorig = scip->set->misc_transsolsorig;
    scip->set->misc_transsolsorig = FALSE;
 
-   /* release variables and constraints captured by reoptimization */
-   if( scip->set->reopt_enable || scip->reopt != NULL)
-   {
-      SCIP_CALL( SCIPreoptReleaseData(scip->reopt, scip->set, scip->mem->probmem) );
-   }
-
    SCIP_CALL( SCIPfreeTransform(scip) );
    /* for some reason the free transform can generate events caught in the globalbnd eventhander
     * which requires the concurrent so it must be freed afterwards this happened o instance fiber
@@ -735,7 +733,7 @@ SCIP_RETCODE SCIPfreeProb(
       /* deactivate all Benders' decomposition */
       for( i = scip->set->nactivebenders-1; i >= 0; --i )
       {
-         SCIPbendersDeactivate(scip->set->benders[i], scip->set);
+         SCIP_CALL( SCIPbendersDeactivate(scip->set->benders[i], scip->set) );
       }
       assert(scip->set->nactivebenders == 0);
 
@@ -743,10 +741,11 @@ SCIP_RETCODE SCIPfreeProb(
       SCIP_CALL( SCIPdebugFreeDebugData(scip->set) );
 
       /* free original primal solution candidate pool, original problem and problem statistics data structures */
-      if( scip->set->reopt_enable || scip->reopt != NULL)
+      if( scip->reopt != NULL )
       {
          SCIP_CALL( SCIPreoptFree(&scip->reopt, scip->set, scip->origprimal, scip->mem->probmem) );
       }
+      SCIPdecompstoreFree(&scip->decompstore, SCIPblkmem(scip));
       SCIP_CALL( SCIPconflictstoreFree(&scip->conflictstore, scip->mem->probmem, scip->set, scip->stat, scip->reopt) );
       SCIP_CALL( SCIPprimalFree(&scip->origprimal, scip->mem->probmem) );
       SCIP_CALL( SCIPprobFree(&scip->origprob, scip->messagehdlr, scip->mem->probmem, scip->set, scip->stat, scip->eventqueue, scip->lp) );
@@ -1272,7 +1271,7 @@ SCIP_RETCODE SCIPaddObjoffset(
    SCIP_CALL( SCIPcheckStage(scip, "SCIPaddObjoffset", FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE) );
 
    SCIPprobAddObjoffset(scip->transprob, addval);
-   SCIP_CALL( SCIPprimalUpdateObjoffset(scip->primal, SCIPblkmem(scip), scip->set, scip->stat,
+   SCIP_CALL( SCIPprimalUpdateObjoffset(scip->primal, SCIPblkmem(scip), scip->set, scip->stat, scip->eventfilter,
          scip->eventqueue, scip->transprob, scip->origprob, scip->tree, scip->reopt, scip->lp) );
 
    return SCIP_OKAY;
@@ -1442,8 +1441,8 @@ SCIP_RETCODE SCIPsetObjlimit(
       }
       SCIPprobSetObjlim(scip->origprob, objlimit);
       SCIPprobSetObjlim(scip->transprob, objlimit);
-      SCIP_CALL( SCIPprimalUpdateObjlimit(scip->primal, scip->mem->probmem, scip->set, scip->stat, scip->eventqueue,
-            scip->transprob, scip->origprob, scip->tree, scip->reopt, scip->lp) );
+      SCIP_CALL( SCIPprimalUpdateObjlimit(scip->primal, scip->mem->probmem, scip->set, scip->stat, scip->eventfilter,
+            scip->eventqueue, scip->transprob, scip->origprob, scip->tree, scip->reopt, scip->lp) );
       break;
 
    case SCIP_STAGE_TRANSFORMED:
@@ -1460,8 +1459,8 @@ SCIP_RETCODE SCIPsetObjlimit(
       }
       SCIPprobSetObjlim(scip->origprob, objlimit);
       SCIPprobSetObjlim(scip->transprob, objlimit);
-      SCIP_CALL( SCIPprimalUpdateObjlimit(scip->primal, scip->mem->probmem, scip->set, scip->stat, scip->eventqueue,
-            scip->transprob, scip->origprob, scip->tree, scip->reopt, scip->lp) );
+      SCIP_CALL( SCIPprimalUpdateObjlimit(scip->primal, scip->mem->probmem, scip->set, scip->stat, scip->eventfilter,
+            scip->eventqueue, scip->transprob, scip->origprob, scip->tree, scip->reopt, scip->lp) );
       break;
 
    default:
@@ -2842,7 +2841,7 @@ SCIP_RETCODE SCIPdelCons(
 {
    assert(cons != NULL);
 
-   SCIP_CALL( SCIPcheckStage(scip, "SCIPdelCons", FALSE, TRUE, FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE, TRUE, FALSE, TRUE, FALSE, FALSE) );
+   SCIP_CALL( SCIPcheckStage(scip, "SCIPdelCons", FALSE, TRUE, FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, FALSE, FALSE) );
 
    switch( scip->set->stage )
    {
@@ -3234,7 +3233,6 @@ SCIP_RETCODE SCIPaddConflict(
    assert(scip != NULL);
    assert(cons != NULL);
    assert(scip->conflictstore != NULL);
-   assert(conftype != SCIP_CONFTYPE_UNKNOWN);
    assert(conftype != SCIP_CONFTYPE_BNDEXCEEDING || iscutoffinvolved);
 
    SCIP_CALL( SCIPcheckStage(scip, "SCIPaddConflict", FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE) );

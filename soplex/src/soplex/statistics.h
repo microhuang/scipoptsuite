@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -30,10 +30,12 @@ namespace soplex
  * @brief   Class for collecting statistical information
  * @ingroup Algo
  */
-class SoPlex::Statistics
+template <class R>
+class SoPlexBase<R>::Statistics
 {
 
 public:
+
 
    ///@name Construction, resetting, printing
    ///@{
@@ -78,6 +80,7 @@ public:
    /// prints statistics
    void print(std::ostream& os);
 
+
    ///@}
 
 
@@ -93,6 +96,16 @@ public:
    Timer* rationalTime; ///< time for rational LP solving (included in solving time)
    Timer* reconstructionTime; ///< time for rational reconstructions
    Timer::TYPE timerType; ///< type of timer (user or wallclock)
+
+   Real multTimeSparse; ///< time for computing A*x exploiting sparsity (setupPupdate(), PRICE step)
+   Real multTimeFull; ///< time for computing A*x ignoring sparsity (setupPupdate(), PRICE step)
+   Real multTimeColwise; ///< time for computing A*x columnwise (setupPupdate(), PRICE step)
+   Real multTimeUnsetup; ///< time for computing A*x w/o sparsity information (setupPupdate(), PRICE step)
+   int multSparseCalls; ///< number of products A*x exploiting sparsity (setupPupdate(), PRICE step)
+   int multFullCalls; ///< number of products A*x ignoring sparsity (setupPupdate(), PRICE step)
+   int multColwiseCalls; ///< number of products A*x columnwise (setupPupdate(), PRICE step)
+   int multUnsetupCalls; ///< number of products A*x w/o sparsity information (setupPupdate(), PRICE step)
+
    Real luFactorizationTimeReal; ///< time for factorizing bases matrices in real precision
    Real luSolveTimeReal; ///< time for solving linear systems in real precision
    Real luFactorizationTimeRational; ///< time for factorizing bases matrices in rational precision
@@ -123,21 +136,26 @@ public:
    int degenPivotsDual;       ///< number of dual degenerate pivots
    int degenPivotCandPrimal;  ///< number of pivoting candidates that will produce a degenerate step in the primal
    int degenPivotCandDual;    ///< number of pivoting candidates that will produce a degenerate step in the dual
-   Real sumDualDegen;         ///< the sum of the rate of dual degeneracy at each iteration
-   Real sumPrimalDegen;       ///< the sum of the rate of primal degeneracy at each iteration
-   Real decompBasisCondNum;   ///< the condition number for the basis used to perform the decomposition
-   Real totalBoundViol;       ///< the sum of the bound violations in the original problem using the red prob sol
-   Real totalRowViol;         ///< the sum of the row violations in the original problem using the red prob sol
-   Real maxBoundViol;         ///< the max bound violation in the original problem using the red prob sol
-   Real maxRowViol;           ///< the max row violations in the original problem using the red prob sol
+   R sumDualDegen;         ///< the sum of the rate of dual degeneracy at each iteration
+   R sumPrimalDegen;       ///< the sum of the rate of primal degeneracy at each iteration
+   R decompBasisCondNum;   ///< the condition number for the basis used to perform the decomposition
+   R totalBoundViol;       ///< the sum of the bound violations in the original problem using the red prob sol
+   R totalRowViol;         ///< the sum of the row violations in the original problem using the red prob sol
+   R maxBoundViol;         ///< the max bound violation in the original problem using the red prob sol
+   R maxRowViol;           ///< the max row violations in the original problem using the red prob sol
    int  redProbStatus;        ///< status of the reduced problem
    int  compProbStatus;       ///< status of the complementary problem
-   Real finalCompObj;         ///< the final objective function of the complementary problem
+   R finalCompObj;         ///< the final objective function of the complementary problem
 
    // Numerics
-   Real finalBasisCondition;  ///< condition number estimate of the optimal basis matrix
+   R finalBasisCondition;  ///< condition number estimate of the optimal basis matrix
 
    ///@}
+
 };
 } // namespace soplex
+
+// For general templated files
+#include "statistics.hpp"
+
 #endif // _STATISTICS_H_

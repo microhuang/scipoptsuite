@@ -6,7 +6,7 @@
 /*                  of the branch-cut-and-price framework                    */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/* Copyright (C) 2010-2019 Operations Research, RWTH Aachen University       */
+/* Copyright (C) 2010-2020 Operations Research, RWTH Aachen University       */
 /*                         Zuse Institute Berlin (ZIB)                       */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -206,7 +206,7 @@ SCIP_RETCODE Pricingcontroller::getGenericBranchconss()
    SCIP_BRANCHRULE* branchrule = GCGconsMasterbranchGetBranchrule(branchcons);
 
    assert(branchcons != NULL);
-   assert(SCIPnodeGetDepth(GCGconsMasterbranchGetNode(branchcons)) == 0 || branchrule != NULL);
+   assert(SCIPnodeGetDepth(GCGconsMasterbranchGetNode(branchcons)) == 0 || branchrule != NULL || SCIPinProbing(scip_));
 
    while( GCGisBranchruleGeneric(branchrule) )
    {
@@ -224,15 +224,15 @@ SCIP_RETCODE Pricingcontroller::getGenericBranchconss()
       assert(mastercons != NULL);
       assert(consblocknr >= 0 || consblocknr == -3);
 
-      if (consblocknr >= 0)
+      if( consblocknr >= 0 )
       {
-         for (i = 0; i < npricingprobs; ++i)
+         for( i = 0; i < npricingprobs; ++i )
          {
             /* search for the pricing problem to which the generic branching decision belongs */
-            if (consblocknr == GCGpricingprobGetProbnr(pricingprobs[i]))
+            if( consblocknr == GCGpricingprobGetProbnr(pricingprobs[i]) )
             {
-               SCIP_CALL(GCGpricingprobAddGenericBranchData(scip_, pricingprobs[i], branchcons,
-                                                            pricingtype_->consGetDual(scip_, mastercons)));
+               SCIP_CALL( GCGpricingprobAddGenericBranchData(scip_, pricingprobs[i], branchcons,
+                  pricingtype_->consGetDual(scip_, mastercons)) );
                break;
             }
          }
@@ -254,7 +254,8 @@ SCIP_Bool Pricingcontroller::pricingprobIsDone(
    return GCGpricingprobGetNImpCols(pricingprob) > 0
       || (GCGpricingprobGetStatus(pricingprob) == GCG_PRICINGSTATUS_OPTIMAL && GCGpricingprobGetBranchconsIdx(pricingprob) == 0)
       || GCGpricingprobGetStatus(pricingprob) == GCG_PRICINGSTATUS_INFEASIBLE
-      || GCGpricingprobGetStatus(pricingprob) == GCG_PRICINGSTATUS_UNBOUNDED;
+      || GCGpricingprobGetStatus(pricingprob) == GCG_PRICINGSTATUS_UNBOUNDED
+      || SCIPisStopped(scip_);
 }
 
 /** check whether the next generic branching constraint of a pricing problem must be considered */
@@ -610,6 +611,9 @@ SCIP_Bool Pricingcontroller::canPricingloopBeAborted(
 
    if( eagerage == eagerfreq )
       return FALSE;
+
+   if( SCIPisStopped(scip_) )
+      return TRUE;
 
    return !((nfoundcols < pricingtype->getMaxcolsround())
          && nsuccessfulprobs < pricingtype->getMaxsuccessfulprobs()

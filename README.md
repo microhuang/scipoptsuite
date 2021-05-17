@@ -4,7 +4,7 @@
 *                  This file is part of the program and library             *
 *         SCIP --- Solving Constraint Integer Programs                      *
 *                                                                           *
-*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            *
+*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            *
 *                            fuer Informationstechnik Berlin                *
 *                                                                           *
 *  SCIP is distributed under the terms of the ZIB Academic License.         *
@@ -15,12 +15,13 @@
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 ```
 
-The SCIP Optimization Suite consists of the following five software tools:
+The SCIP Optimization Suite consists of the following six software tools:
   1. ZIMPL  - the Zuse Institute Mathematical Programming language
   2. SoPlex - the Sequential Object Oriented Simplex
   3. SCIP   - Solving Constraint Integer Programs
   4. GCG    - Generic Column Generation
   5. UG     - Ubiquity Generator Framework
+  6. PaPILO - Parallel Presolve for Integer and Linear Optimization
 
 We provide two different systems to compile the code: the traditional Makefile
 system and the new CMake build system.  Be aware that generated libraries and
@@ -134,8 +135,8 @@ of each component.
 
 ## Creating a single library containing SCIP, SoPlex, and ZIMPL
 
-In case you need a single library which contains the whole package, that is
-SCIP, SoPlex, and ZIMPL, you can use the command:
+In case you need a single library which contains SCIP, SoPlex, and ZIMPL
+you can use the command:
 
     make scipoptlib
 

@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -367,19 +367,40 @@ ScipParaInitiator::init(
    /* output solver version */
    printSolverVersion(NULL);
 
+   /* Make sure that copying of symmetry handling constraints works. This is a workaround: Symmetry constraints are
+    * usually not copied, but then we cannot proceed here. Thus, copying is forced. This is correct, but slows down the
+    * sequential SCIP version a little. This solution is here until a better solution has been found. */
+   SCIP_RETCODE paramretcode = SCIPsetBoolParam(scip, "constraints/orbisack/forceconscopy", TRUE);
+   if( paramretcode != SCIP_OKAY && paramretcode != SCIP_PARAMETERUNKNOWN )
+   {
+      SCIP_CALL_ABORT( paramretcode );
+   }
+   paramretcode = SCIPsetBoolParam(scip, "constraints/orbitope/forceconscopy", TRUE);
+   if( paramretcode != SCIP_OKAY && paramretcode != SCIP_PARAMETERUNKNOWN )
+   {
+      SCIP_CALL_ABORT( paramretcode );
+   }
+   paramretcode = SCIPsetBoolParam(scip, "constraints/symresack/forceconscopy", TRUE);
+   if( paramretcode != SCIP_OKAY && paramretcode != SCIP_PARAMETERUNKNOWN )
+   {
+      SCIP_CALL_ABORT( paramretcode );
+   }
+
    /*************************************************
     * set quiet message handler, if it is necessary *
     *************************************************/
    messagehdlr = NULL;
    if( paraParams->getBoolParamValue(Quiet) )
    {
-      SCIP_CALL_ABORT( SCIPcreateObjMessagehdlr(&messagehdlr, new ScipParaObjMessageHdlr(paraComm, NULL, TRUE, FALSE), TRUE) );
+      ScipParaObjMessageHdlr* objmessagehdlr = new ScipParaObjMessageHdlr(paraComm, NULL, TRUE, FALSE);
+      SCIP_CALL_ABORT( SCIPcreateObjMessagehdlr(&messagehdlr, objmessagehdlr, TRUE) );
 #ifndef SCIP_THREADSAFE_MESSAGEHDLRS
       SCIP_CALL_ABORT( SCIPsetMessagehdlr(messagehdlr) );
 #else
       SCIP_CALL_ABORT( SCIPsetMessagehdlr(scip, messagehdlr) );
       SCIP_CALL_ABORT( SCIPmessagehdlrRelease(&messagehdlr));
 #endif
+      SCIPmessageSetErrorPrinting(ParaSCIP::scip_errorfunction, (void*) objmessagehdlr);
    }
    else
    {
@@ -395,13 +416,16 @@ ScipParaInitiator::init(
                THROW_LOGICAL_ERROR3("cannot open log file <", logname, "> for writing");
             }
          }
-         SCIP_CALL_ABORT( SCIPcreateObjMessagehdlr(&messagehdlr, new ScipParaObjMessageHdlr(paraComm, logfile, quiet, FALSE), TRUE) );
+
+         ScipParaObjMessageHdlr* objmessagehdlr = new ScipParaObjMessageHdlr(paraComm, logfile, quiet, FALSE);
+         SCIP_CALL_ABORT( SCIPcreateObjMessagehdlr(&messagehdlr, objmessagehdlr, TRUE) );
 #ifndef SCIP_THREADSAFE_MESSAGEHDLRS
          SCIP_CALL_ABORT( SCIPsetMessagehdlr(messagehdlr) );
 #else
          SCIP_CALL_ABORT( SCIPsetMessagehdlr(scip, messagehdlr) );
          SCIP_CALL_ABORT( SCIPmessagehdlrRelease(&messagehdlr));
 #endif
+         SCIPmessageSetErrorPrinting(ParaSCIP::scip_errorfunction, (void*) objmessagehdlr);
       }
    }
 
@@ -477,7 +501,7 @@ ScipParaInitiator::init(
 
       // Problem Creation
 
-      int retcode = SCIPreadProb(scip, probname, NULL);
+      SCIP_RETCODE retcode = SCIPreadProb(scip, probname, NULL);
       if( retcode != SCIP_OKAY )
       {
          std::cout << "error reading file <" << probname << ">" << std::endl;
@@ -678,6 +702,7 @@ ScipParaInitiator::init(
       int nNonLinearConsHdlrs = 0;
       outputProblemInfo(&nNonLinearConsHdlrs);
 #ifdef _COMM_MPI_WORLD
+      if( SCIPgetNActiveBenders(scip) > 0 ) nNonLinearConsHdlrs++;
       PARA_COMM_CALL(
             paraComm->bcast( &nNonLinearConsHdlrs, 1, ParaINT, 0 )
       );
@@ -854,6 +879,10 @@ ScipParaInitiator::init(
       {
          writeSolution("");
       }
+      else
+      {
+         writeSolution("Updated");
+      }
    }
 
    return 0;
@@ -905,7 +934,7 @@ ScipParaInitiator::reInit(
    (void) fclose(fp);
 
    // Problem Creation
-   int retcode = SCIPreadProb(scip, probname, NULL);
+   SCIP_RETCODE retcode = SCIPreadProb(scip, probname, NULL);
    if( retcode != SCIP_OKAY )
    {
       std::cout << "error reading file <" << probname << ">" << std::endl;
@@ -1063,6 +1092,16 @@ ScipParaInitiator::tryToSetIncumbentSolution(
    ScipParaSolution *tempSol = dynamic_cast< ScipParaSolution * >(sol);
 
    if( tempSol->getNVars() == 0 )
+   {
+      delete tempSol;
+      return false;
+   }
+
+   /* If there is an active Benders' decomposition plugin, the stored solutions are not valid for the original problem.
+    * This is due to the auxiliary variable not being present in the original problem. Thus, it is not possible to set
+    * the incumbent solution
+    */
+   if( checksol && SCIPgetNActiveBenders(scip) > 0 )
    {
       delete tempSol;
       return false;
@@ -1242,6 +1281,10 @@ ScipParaInitiator::tryToSetIncumbentSolution(
          {
             writeSolution("");
          }
+         else
+         {
+            writeSolution("Updated");
+         }
          return true;
       }
       else
@@ -1300,6 +1343,10 @@ ScipParaInitiator::tryToSetIncumbentSolution(
                {
                   writeSolution("");
                }
+               else
+               {
+                  writeSolution("Updated");
+               }
                return true;
             }
          }
@@ -1340,6 +1387,10 @@ ScipParaInitiator::tryToSetIncumbentSolution(
          if( !paraParams->getBoolParamValue(Quiet) )
          {
             writeSolution("");
+         }
+         else
+         {
+            writeSolution("Updated");
          }
          paraComm->unlockApp();
          return true;
@@ -1387,6 +1438,10 @@ ScipParaInitiator::tryToSetIncumbentSolution(
             if( !paraParams->getBoolParamValue(Quiet) )
             {
                writeSolution("");
+            }
+            else
+            {
+               writeSolution("Updated");
             }
             paraComm->unlockApp();
             return true;
@@ -1495,9 +1550,10 @@ ScipParaInitiator::sendSolverInitializationMessage(
    {
       assert( instance->getNVars() > 0 );
       assert( instance->getVarIndexRange() > 0 );
-      tightenedVarLbs = new double[instance->getNVars()];
-      tightenedVarUbs = new double[instance->getNVars()];
-      for( int i = 0; i < instance->getNVars(); i++ )
+      // IndexRange must be bigger than NVars
+      tightenedVarLbs = new double[instance->getVarIndexRange()];
+      tightenedVarUbs = new double[instance->getVarIndexRange()];
+      for( int i = 0; i < instance->getVarIndexRange(); i++ )
       {
          tightenedVarLbs[i] = -DBL_MAX;
          tightenedVarUbs[i] = DBL_MAX;
@@ -1555,6 +1611,7 @@ ScipParaInitiator::writeSolution(
       const std::string& message
       )
 {
+   std::ostringstream osold;
    if( message == "Final Solution" )
    {
 #ifndef SCIP_THREADSAFE_MESSAGEHDLRS
@@ -1563,11 +1620,40 @@ ScipParaInitiator::writeSolution(
          SCIPmessageSetDefaultHandler();    // If no message handler is set, it cannot write solution,too.
       }
 #endif
-      fprintf(solutionFile, "[ Final Solution ]\n");
+      if( (!paraParams->getBoolParamValue(Quiet)) )  // when solutionFileName is specified, it is always updated
+      {
+          fprintf(solutionFile, "[ Final Solution ]\n");
+      }
       if( transSolutionFile )
       {
          fprintf(transSolutionFile, "[ Final Solution ]\n");
       }
+   }
+   else if ( message == "Updated" )
+   {
+      assert( solutionFileName || (paraParams->getBoolParamValue(Quiet) && !solutionFileName ) );
+      fclose(solutionFile);
+      std::ostringstream os;
+      if( solutionFileName )
+      {
+         osold << solutionFileName << ".old";
+         os << solutionFileName;
+      }
+      else
+      {
+         osold << paraParams->getStringParamValue(SolutionFilePath);
+         osold << instance->getProbName() << ".sol.old";
+	 os << paraParams->getStringParamValue(SolutionFilePath);
+         os << instance->getProbName() << ".sol";
+      }
+      // std::cout << "File Name: " << os.str().c_str() << " to " << osold.str().c_str() << std::endl;
+      if( rename(os.str().c_str(), osold.str().c_str()) )
+      {
+          std::cerr << "Rename falied from " <<  "File Name: " << os.str().c_str() << " to " << osold.str().c_str() << std::endl;
+          exit(1);
+      }
+      solutionFile = fopen(os.str().c_str(), "a");  // if solution file exists, append
+      fprintf(solutionFile, "[ Final Solution ]\n");
    }
    else
    {
@@ -1580,7 +1666,10 @@ ScipParaInitiator::writeSolution(
    SCIP_SOL* sol = SCIPgetBestSol(scip);
    if( sol )
    {
-      SCIP_CALL_ABORT( SCIPprintBestSol( scip, solutionFile, FALSE) );
+      if( (!(message == "Final Solution")) || (!paraParams->getBoolParamValue(Quiet)) )  // when solutionFileName is specified, it is always updated
+      {
+         SCIP_CALL_ABORT( SCIPprintBestSol( scip, solutionFile, FALSE) );
+      }
       if( transSolutionFile )
       {
          if( SCIPsolGetOrigin(sol) != SCIP_SOLORIGIN_ORIGINAL )
@@ -1614,6 +1703,10 @@ ScipParaInitiator::writeSolution(
       {
          fprintf(transSolutionFile, "No Solution\n");
       }
+   }
+   if ( message == "Updated" )
+   {
+      remove(osold.str().c_str());
    }
 }
 
@@ -2145,12 +2238,14 @@ ScipParaInitiator::outputProblemInfo(
       conshdlr = SCIPgetConshdlrs(scip)[i];
       startnactiveconss = SCIPconshdlrGetStartNActiveConss(conshdlr);
       maxnactiveconss = SCIPconshdlrGetMaxNActiveConss(conshdlr);
-      std::cout << "  " << std::setw(17) << std::left << SCIPconshdlrGetName(conshdlr) << ": "
-                <<  startnactiveconss <<  ( maxnactiveconss > startnactiveconss ? '+' : ' ') << std::endl;
-      if( startnactiveconss > 0 
-          && std::string(SCIPconshdlrGetName(conshdlr)) != std::string("linear") )
+      if( startnactiveconss > 0 )
       {
-         *nNonLinearConsHdlrs += startnactiveconss;
+         std::cout << "  " << std::setw(17) << std::left << SCIPconshdlrGetName(conshdlr) << ": "
+                   <<  startnactiveconss <<  ( maxnactiveconss > startnactiveconss ? '+' : ' ') << std::endl;
+         if ( std::string(SCIPconshdlrGetName(conshdlr)) != std::string("linear") )
+         {
+            *nNonLinearConsHdlrs += startnactiveconss;
+         }
       }
    }
 }

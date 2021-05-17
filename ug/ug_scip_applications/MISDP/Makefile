@@ -3,7 +3,7 @@
 #*                  This file is part of the program and library             *
 #*         SCIP --- Solving Constraint Integer Programs                      *
 #*                                                                           *
-#*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            *
+#*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            *
 #*                            fuer Informationstechnik Berlin                *
 #*                                                                           *
 #*  SCIP is distributed under the terms of the ZIB Academic Licence.         *
@@ -18,9 +18,9 @@
 #@author  Stefan Heinz
 #@author	 Tristan Gally
 
-UG_VERSION      = 0.8.8
+UG_VERSION		:=	0.9.1
 #-----------------------------------------------------------------------------
-# COMM 
+# COMM
 #-----------------------------------------------------------------------------
 #COMM            = pth
 COMM            = cpp11
@@ -37,7 +37,7 @@ UGMISDPDIR		 =			$(realpath .)
 #-----------------------------------------------------------------------------
 include $(SCIPDIR)/make/make.project
 #-----------------------------------------------------------------------------
-# set the UGLIB 
+# set the UGLIB
 #-----------------------------------------------------------------------------
 UGLIB           =       ugscip-$(UG_VERSION).$(BASE).$(COMM)
 #-----------------------------------------------------------------------------
@@ -201,7 +201,7 @@ endif
 all:            $(SCIPDIR) $(MAINFILE) $(MAINSHORTLINK)
 
 .PHONY: preprocess
-preprocess:     
+preprocess:
 		@$(SHELL) -ec 'if test ! -e $(LINKSMARKERFILE) ; \
 			then \
 				echo "-> generating necessary links" ; \
@@ -240,22 +240,22 @@ $(OBJDIR):
 
 $(BINDIR):
 		@-mkdir -p $(BINDIR)
-		
+
 $(UGLIBDIR):
 		@-mkdir -p $(UGLIBDIR)
-		
+
 $(UGLIBDIR)/include: $(UGLIBDIR)
 		@-mkdir -p $(UGLIBDIR)/include
-		
+
 $(UGLIBDIR)/static: $(UGLIBDIR)
 		@-mkdir -p $(UGLIBDIR)/static
-		
+
 $(UGLIBDIR)/shared: $(UGLIBDIR)
 		@-mkdir -p $(UGLIBDIR)/shared
 
 $(CHECKDIR):
 		@-mkdir -p $(CHECKDIR)
-		
+
 $(LINKSMARKERFILE):
 		@$(MAKE) links
 

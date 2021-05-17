@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -37,7 +37,8 @@ namespace soplex
    See SPxRatioTester for a class documentation.
 */
 /**@todo HarrisRT leads to cycling in dcmulti.sub.lp */
-class SPxHarrisRT : public SPxRatioTester
+template <class R>
+class SPxHarrisRT : public SPxRatioTester<R>
 {
 private:
 
@@ -45,32 +46,32 @@ private:
    /**@name Private helpers */
    ///@{
    ///
-   Real degenerateEps() const;
+   R degenerateEps() const;
 
    ///
    int maxDelta(
-      Real* /*max*/,        ///< max abs value in \p upd
-      Real* val,            ///< initial and chosen value
+      R* /*max*/,        ///< max abs value in \p upd
+      R* val,            ///< initial and chosen value
       int num,              ///< number of indices in \p idx
       const int* idx,       ///< nonzero indices in \p upd
-      const Real* upd,      ///< update vector for \p vec
-      const Real* vec,      ///< current vector
-      const Real* low,      ///< lower bounds for \p vec
-      const Real* up,       ///< upper bounds for \p vec
-      Real epsilon          ///< what is 0?
+      const R* upd,      ///< update VectorBase<R> for \p vec
+      const R* vec,      ///< current vector
+      const R* low,      ///< lower bounds for \p vec
+      const R* up,       ///< upper bounds for \p vec
+      R epsilon          ///< what is 0?
    ) const;
 
    ///
    int minDelta(
-      Real* /*max*/,        ///< max abs value in \p upd
-      Real* val,            ///< initial and chosen value
+      R* /*max*/,        ///< max abs value in \p upd
+      R* val,            ///< initial and chosen value
       int num,              ///< of indices in \p idx
       const int* idx,       ///< nonzero indices in \p upd
-      const Real* upd,      ///< update vector for \p vec
-      const Real* vec,      ///< current vector
-      const Real* low,      ///< lower bounds for \p vec
-      const Real* up,       ///< upper bounds for \p vec
-      Real epsilon          ///< what is 0?
+      const R* upd,      ///< update VectorBase<R> for \p vec
+      const R* vec,      ///< current vector
+      const R* low,      ///< lower bounds for \p vec
+      const R* up,       ///< upper bounds for \p vec
+      R epsilon          ///< what is 0?
    ) const;
    ///@}
 
@@ -81,18 +82,18 @@ public:
    ///@{
    /// default constructor
    SPxHarrisRT()
-      : SPxRatioTester("Harris")
+      : SPxRatioTester<R>("Harris")
    {}
    /// copy constructor
    SPxHarrisRT(const SPxHarrisRT& old)
-      : SPxRatioTester(old)
+      : SPxRatioTester<R>(old)
    {}
    /// assignment operator
    SPxHarrisRT& operator=(const SPxHarrisRT& rhs)
    {
       if(this != &rhs)
       {
-         SPxRatioTester::operator=(rhs);
+         SPxRatioTester<R>::operator=(rhs);
       }
 
       return *this;
@@ -101,7 +102,7 @@ public:
    virtual ~SPxHarrisRT()
    {}
    /// clone function for polymorphism
-   inline virtual SPxRatioTester* clone() const
+   inline virtual SPxRatioTester<R>* clone() const
    {
       return new SPxHarrisRT(*this);
    }
@@ -111,12 +112,16 @@ public:
    /**@name Leave / enter */
    ///@{
    ///
-   virtual int selectLeave(Real& val, Real, bool);
+   virtual int selectLeave(R& val, R, bool);
    ///
-   virtual SPxId selectEnter(Real& val, int, bool);
+   virtual SPxId selectEnter(R& val, int, bool);
    ///@}
 
 };
 
 } // namespace soplex
+// For the general template
+#include "spxharrisrt.hpp"
+
+
 #endif // _SPXHARRISRT_H_

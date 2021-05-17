@@ -3,7 +3,7 @@
 #*             This file is part of the program and software framework       *
 #*                  UG --- Ubquity Generator Framework                       *
 #*                                                                           *
-#*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            *
+#*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            *
 #*                            fuer Informationstechnik Berlin                *
 #*                                                                           *
 #*  UG is distributed under the terms of the ZIB Academic Licence.           *
@@ -20,20 +20,20 @@
 #-----------------------------------------------------------------------------
 # default settings ( may be overwritten in $(SCIPDIR)/make/make.project )
 #-----------------------------------------------------------------------------
-VERSION         :=      0.8.8
-SOLVER		=       scip
-COMM            =       cpp11
-# COMM            =       pth
-
-TEST		=	short
-TIME		=	360
-SETTINGS        =	default
-VERBOSE         =       false
-OPT             =       opt
-COMP            =       gnu
-LPS             =       spx2
-DET		=       false
-ZLIB		= 	true
+VERSION		:=	0.9.1
+SOLVER   	=   scip
+# COMM            =   pth
+COMM            =   cpp11
+UGS	       	=   false
+TEST        	=   short
+TIME    	=   360
+SETTINGS        =   default
+VERBOSE         =   false
+OPT             =   opt
+COMP            =   gnu
+LPS             =   spx2
+DET	        =   false
+ZLIB	        =   true
 
 # paths
 SCIPDIR         =       lib/scip
@@ -44,56 +44,155 @@ UGOBJSUBDIRS    =       ug ug_$(SOLVER)
 include $(SCIPDIR)/make/make.project
 
 # check that SCIP was compiled with PARASCIP = true
-SCIPVERSION                     :=$(shell $(SCIPDIR)/bin/scip.$(BASE).$(LPS).$(TPI)$(EXEEXTENSION) -v | sed -e 's/$$/@/')
-override PARASCIP       :=$(shell echo "$(SCIPVERSION)" | sed -e 's/.* PARASCIP=\([^@]*\).*/\1/')
+SCIPVERSION			:=$(shell $(SCIPDIR)/bin/scip.$(BASE).$(LPS).$(TPI)$(EXEEXTENSION) -v | sed -e 's/$$/@/')
+override PARASCIP	:=$(shell echo "$(SCIPVERSION)" | sed -e 's/.* PARASCIP=\([^@]*\).*/\1/')
 
 # redefine THREADS
 THREADS		=	4
+
+ifeq ($(SOLVER), xpress)
+LPS = xps
+# XPRESSDIR = /optimi/usr/sw/xpress_8.4.6
+XPRESSDIR = /nfs/optimi/usr/sw/xpress
+XPRESSINCLUDEPATH=$(XPRESSDIR)/include
+XPRESSLIBRARYPATH=$(XPRESSDIR)/lib
+XLNFLAGS  = -Xlinker -rpath -Xlinker $(XPRESSLIBRARYPATH) -L$(XPRESSLIBRARYPATH) -lxprs -lm -pthread -lz # -static
+endif  # xpress
+
+ifeq ($(SOLVER), cplex)
+#-----------------------------------------------------------------------------
+# default settings ( for ParaCPLEX )
+#-----------------------------------------------------------------------------
+LPS		=	cpx
+# SYSTEM     = x86-64_sles10_4.1
+SYSTEM     = x86-64_linux
+LIBFORMAT  = static_pic
+# CPLEXDIR   = /home/optimi/bzfshina/software/CPLEX_Studio1251/cplex
+CPLEXDIR   = /optimi/usr/sw/cplex126/cplex
+
+# ---------------------------------------------------------------------
+# Compiler options
+# ---------------------------------------------------------------------
+
+# CCOPT = -m64 -fPIC -fexceptions -DNDEBUG -DIL_STD
+CCOPT = -m64 -fPIC -fexceptions -DIL_STD
+COPT  = -m64 -fPIC
+
+# ---------------------------------------------------------------------
+# Link options and libraries
+# ---------------------------------------------------------------------
+
+CPLEXBINDIR   = $(CPLEXDIR)/bin/$(BINDIST)
+CPLEXLIBDIR   = $(CPLEXDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
+
+CLNFLAGS  = -L$(CPLEXLIBDIR) -lcplex -lm -pthread -lz # -static
+
+
+CPLEXINCDIR   = $(CPLEXDIR)/include
+endif  # cplex
 
 # ---------------------------------------------------------------------
 # Git hash
 # ---------------------------------------------------------------------
 UGGITHASH     =       $(shell git describe --always --dirty  | sed 's/^.*-g//')
-UGGITHASHFILE   =       $(SRCDIR)/ug/githash.cpp
 
 # ---------------------------------------------------------------------
 # Compiler selection
 # ---------------------------------------------------------------------
-
 ifeq ($(COMM), mpi)
 CXX             =       mpicxx
 LINKCXX		=	mpicxx
 CXXINFO	        =       $(shell which $(CXX))
 CXXEXIST        =       $(shell echo $(CXXINFO) | awk /$(CXX)/)
-endif
+# CXXFLAGS        +=      -DUG_SCIP_V31_CHECK_POINT_FILES
+endif  # mpi
 
 ifeq ($(COMM), pth)
+ifeq ($(UGS), true)
+CXX             =       mpicxx
+LINKCXX		=	mpicxx
+# CXXFLAGS        +=      -DUG_WITH_ULIBC
+else
+ifeq ($(COMP), intel)
+CXX             =       icpc
+LINKCXX         =       icpc
+else
+CXX             =       g++
+LINKCXX         =       g++
+endif # comp
+# CXXFLAGS        +=      -DUG_WITH_ULIBC
+endif # ugs
+# CXXFLAGS        +=      -DUG_SCIP_V31_CHECK_POINT_FILES
+CXXFLAGS        +=      -g
 LDFLAGS		+=	-pthread
-endif
+# LDFLAGS		+=	-pthread  -Llib -lulibc -lhwloc
+endif # pth
 
 ifeq ($(COMM), cpp11)
+ifeq ($(UGS), true)
+CXX             =       mpicxx
+LINKCXX		=	mpicxx
+# CXXFLAGS        +=      -DUG_WITH_ULIBC
+else
+ifeq ($(COMP), intel)
+CXX             =       icpc
+LINKCXX         =       icpc
+else
+CXX             =       g++
+LINKCXX         =       g++
+endif # comp
+# CXXFLAGS        +=      -DUG_WITH_ULIBC
+endif # ugs
+# CXXFLAGS        +=      -DUG_SCIP_V31_CHECK_POINT_FILES
+CXXFLAGS        +=      -g
 LDFLAGS		+=	-pthread
-endif
+# LDFLAGS		+=	-pthread  -Llib -lulibc -lhwloc
+endif # cpp11
+
+ifeq ($(SOLVER), xpress)
+ifeq ($(COMM), mpi)
+CXXFLAGS = $(CCOPT) -I$(XPRESSINCLUDEPATH) -D_COMM_MPI_WORLD -DMPICH_IGNORE_CXX_SEEK # -DXPRESS_DEBUG_SOLUTION
+endif  # mpi
+ifeq ($(COMM), pth)
+CXXFLAGS = $(CCOPT) -I$(XPRESSINCLUDEPATH) -D_COMM_PTH -D_CPLEX_SOLVER -static
+endif # pth
+ifeq ($(COMM), cpp11)
+CXXFLAGS = $(CCOPT) -I$(XPRESSINCLUDEPATH) -D_COMM_CPP11 -D_CPLEX_SOLVER  -D_REENTRANT -std=c++11 # -DUG_DEBUG_SOLUTION
+endif # cpp11
+endif # xpress
+
+ifeq ($(SOLVER), cplex)
+ifeq ($(COMM), mpi)
+CXXFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -D_COMM_MPI_WORLD -DMPICH_IGNORE_CXX_SEEK -D_CPLEX_SOLVER
+endif # mpi
+ifeq ($(COMM), pth)
+CXXFLAGS = $(CCOPT) -I$(CPLEXINCDIR) -D_COMM_PTH -D_CPLEX_SOLVER -static
+endif # pth
+endif # cplex
 
 ifeq ($(SOLVER), scip)
 ifeq ($(COMM), mpi)
-CXXFLAGS        +=      -D_COMM_MPI_WORLD -DMPICH_IGNORE_CXX_SEEK -D_SCIP_SOLVER -fPIE
-endif
+CXXFLAGS        +=      -D_COMM_MPI_WORLD -DMPICH_IGNORE_CXX_SEEK -D_SCIP_SOLVER -fPIE -D_MUTEX_CPP11 # -DUG_DEBUG_SOLUTION
+endif # mpi
 ifeq ($(COMM), pth)
-CXXFLAGS        +=      -D_COMM_PTH -D_SCIP_SOLVER  -D_REENTRANT
-endif
+CXXFLAGS        +=      -D_COMM_PTH -D_SCIP_SOLVER  -D_REENTRANT # -D_UG_NO_THREAD_LOCAL_STATIC # -D_UG_NO_THREAD_LOCAL_STATIC # -DUG_DEBUG_SOLUTION
+endif # pth
 ifeq ($(COMM), cpp11)
-CXXFLAGS        +=      -D_COMM_CPP11 -D_SCIP_SOLVER  -D_REENTRANT
-endif
-endif
+CXXFLAGS        +=      -D_COMM_CPP11 -D_SCIP_SOLVER  -D_REENTRANT -std=c++11 # -DUG_DEBUG_SOLUTION
+endif # cpp11
+endif # scip
+
+ifeq ($(UGS), true)
+CXXFLAGS	+= -DUG_WITH_UGS
+endif # ugs
 
 ifeq ($(ZLIB_LDFLAGS),)
 ZLIB            =       false
-endif
+endif  # zlib_ldflages
 ifeq ($(ZLIB),true)
 CXXFLAGS        +=      -DUG_WITH_ZLIB $(ZLIB_FLAGS)
 LDFLAGS         +=      $(ZLIB_LDFLAGS)
-endif
+endif # zlib
 
 ifeq ($(HOSTNAME), alibaba)
 CXXFLAGS        +=      -i-dynamic -D_ALIBABA
@@ -102,6 +201,8 @@ endif
 ifeq ($(HOSTNAME), bicegate1)
 CXXFLAGS        +=      -i-dynamic -D_ALIBABA
 endif
+
+UGGITHASHFILE   =       $(SRCDIR)/ug/githash.cpp
 
 #-----------------------------------------------------------------------------
 # UG framwork
@@ -118,7 +219,6 @@ UGOBJ           =       ug/paraLoadCoordinator.o \
 			ug/paraSysTimer.o \
 			ug/gzstream.o \
 			ug/uggithash.o
-
 
 ifeq ($(COMM),pth)
 UGOBJ		+=	ug/paraCalculationStateTh.o \
@@ -222,8 +322,9 @@ UGSCIPLIBOBJ	+=	ug_scip/scipDiffParamSet.o \
 			ug_scip/scipParaInitiator.o \
 			ug_scip/scipParaObjBranchRule.o \
 			ug_scip/scipParaObjCommPointHdlr.o \
-			ug_scip/scipParaObjMessageHdlr.o \
+			ug_scip/scipParaObjLimitUpdator.o \
 			ug_scip/scipParaObjNodesel.o \
+			ug_scip/scipParaObjMessageHdlr.o \
 			ug_scip/scipParaSolution.o \
 			ug_scip/scipParaSolver.o
 
@@ -248,8 +349,127 @@ UGSCIPLIBOBJFILES =     $(addprefix $(OBJDIR)/$(COMM)/,$(UGOBJ))
 UGSCIPLIBOBJFILES +=	$(addprefix $(OBJDIR)/$(COMM)/,$(UGSCIPLIBOBJ))
 UGSCIPLIBSRC      =     $(addprefix $(SRCDIR)/,$(UGSCIPLIBOBJ:.o=.cpp))
 UGSCIPLIBDEP      =     $(SRCDIR)/depend.sciplib.$(OPT)
-UGSCIPLIBLINK     =     $(LIBDIR)/lib$(UGSCIPLIBSHORTNAME).$(BASE).$(LIBEXT)
-UGSCIPLIBSHORTLINK =    $(LIBDIR)/lib$(UGSCIPLIBSHORTNAME).$(LIBEXT)
+UGSCIPLIBLINK     =     $(LIBDIR)/lib$(UGSHORTNAME).$(BASE).$(COMM).$(LIBEXT)
+UGSCIPLIBSHORTLINK =    $(LIBDIR)/lib$(UGSHORTNAME).$(LIBEXT)
+
+endif
+
+#-----------------------------------------------------------------------------
+# ParaXpress
+#-----------------------------------------------------------------------------
+ifeq ($(SOLVER),xpress)
+ifeq ($(COMM),pth)
+MAINSHORTNAME   =       fxpress
+UGXPRESSNAME     =       $(UGXPRESSSHORTNAME)-$(VERSION)
+UGXPRESSOBJ	=	ug_xpress/fxpress.o \
+			ug_xpress/xpressParaCommTh.o \
+			ug_xpress/xpressParaInstanceTh.o \
+			ug_xpress/xpressParaParamsTh.o \
+			ug_xpress/xpressParaSolutionTh.o
+endif
+ifeq ($(COMM),cpp11)
+MAINSHORTNAME   =       fxpress
+UGXPRESSNAME     =       $(UGXPRESSSHORTNAME)-$(VERSION)
+UGXPRESSOBJ	=	ug_xpress/fxpress.o \
+			ug_xpress/xpressParaCommTh.o \
+			ug_xpress/xpressParaInstanceTh.o \
+			ug_xpress/xpressParaParamsTh.o \
+			ug_xpress/xpressParaSolutionTh.o
+endif
+ifeq ($(COMM),mpi)
+MAINSHORTNAME   =       paraxpress
+UGXPRESSNAME     =       $(UGXPRESSSHORTNAME)-$(VERSION)
+UGXPRESSOBJ	=	ug_xpress/paraxpress.o \
+			ug_xpress/xpressParaCommMpi.o \
+			ug_xpress/xpressParaDiffSubproblemMpi.o \
+			ug_xpress/xpressParaInstanceMpi.o \
+			ug_xpress/xpressParaRacingRampUpParamSetMpi.o \
+			ug_xpress/xpressParaParamsMpi.o \
+			ug_xpress/xpressParaSolutionMpi.o
+endif
+
+MAINNAME        =       $(MAINSHORTNAME)
+UGXPRESSOBJ	+=	ug_xpress/xpressParaDiffSubproblem.o \
+			ug_xpress/xpressParaInitiator.o \
+			ug_xpress/xpressParaSolution.o \
+			ug_xpress/xpressParaCommPointHdlr.o \
+			ug_xpress/xpressParaRacingRampUpParamSet.o \
+			ug_xpress/xpressParaParams.o \
+			ug_xpress/xpressParaSolver.o
+
+MAINOBJ		=	$(UGXPRESSOBJ)
+
+MAINSRC		=	$(addprefix $(SRCDIR)/,$(MAINOBJ:.o=.cpp))
+
+UGXPRESS         =    	$(UGXPRESSNAME).$(BASE)
+UGXPRESSFILE     =    	$(LIBDIR)/libugscip$(UGXPRESS).$(COMM).$(LIBEXT)
+# UGSCIPLIBOBJFILES =     $(addprefix $(LIBOBJDIR)/,$(UGSCIPLIBOBJ))
+UGXPRESSOBJFILES =     $(addprefix $(OBJDIR)/$(COMM)/,$(UGOBJ))
+UGXPRESSOBJFILES +=	$(addprefix $(OBJDIR)/$(COMM)/,$(UGXPRESSOBJ))
+UGXPRESSSRC      =     $(addprefix $(SRCDIR)/,$(UGXPRESSOBJ:.o=.cpp))
+UGXPRESSLINK     =     $(LIBDIR)/lib$(UGXPRESSSHORTNAME).$(BASE).$(LIBEXT)
+UGXPRESSSHORTLINK =    $(LIBDIR)/lib$(UGXPRESSSHORTNAME).$(LIBEXT)
+
+endif
+
+#-----------------------------------------------------------------------------
+# ParaCPLEX
+#-----------------------------------------------------------------------------
+ifeq ($(SOLVER),cplex)
+ifeq ($(COMM),pth)
+MAINSHORTNAME   =       fcplex
+UGCPLEXNAME     =       $(UGCPLEXSHORTNAME)-$(VERSION)
+UGCPLEXOBJ	=	ug_cplex/fcplex.o \
+			ug_cplex/cplexParaCommPth.o \
+			ug_cplex/cplexDiffParamSetPth.o \
+			ug_cplex/cplexParaInitialStatPth.o \
+			ug_cplex/cplexParaInstancePth.o \
+			ug_cplex/cplexParaRacingRampUpParamSetPth.o \
+			ug_cplex/cplexParaSolutionPth.o
+endif
+ifeq ($(COMM),mpi)
+MAINSHORTNAME   =       paracplex
+UGCPLEXNAME     =       $(UGCPLEXSHORTNAME)-$(VERSION)
+UGCPLEXOBJ	=	ug_cplex/paracplex.o \
+			ug_cplex/cplexParaCommMpi.o \
+			ug_cplex/cplexDiffParamSetMpi.o \
+			ug_cplex/cplexParaDiffSubproblemMpi.o \
+			ug_cplex/cplexParaInitialStatMpi.o \
+			ug_cplex/cplexParaInstanceMpi.o \
+			ug_cplex/cplexParaRacingRampUpParamSetMpi.o \
+			ug_cplex/cplexParaSolutionMpi.o
+endif
+
+MAINNAME        =       $(MAINSHORTNAME)
+UGCPLEXOBJ	+=	ug_cplex/cplexDiffParamSet.o \
+			ug_cplex/cplexParaInstance.o \
+			ug_cplex/cplexParaDiffSubproblem.o \
+			ug_cplex/cplexParaInitialStat.o \
+			ug_cplex/cplexParaInitiator.o \
+			ug_cplex/cplexParaSolution.o \
+			ug_cplex/cplexParaRacingRampUpParamSet.o \
+			ug_cplex/cplexParaSolver.o
+
+MAINOBJ		=	$(UGCPLEXOBJ)
+
+MAINSRC		=	$(addprefix $(SRCDIR)/,$(MAINOBJ:.o=.cpp))
+
+ifeq ($(COMM),pth)
+MAINDEP		=	$(SRCDIR)/depend.fcplex.$(OPT)
+endif
+ifeq ($(COMM),mpi)
+MAINDEP		=	$(SRCDIR)/depend.parascip.$(OPT)
+endif
+
+UGCPLEX         =    	$(UGCPLEXNAME).$(BASE)
+UGCPLEXFILE     =    	$(LIBDIR)/libugscip$(UGCPLEX).$(COMM).$(LIBEXT)
+# UGSCIPLIBOBJFILES =     $(addprefix $(LIBOBJDIR)/,$(UGSCIPLIBOBJ))
+UGCPLEXOBJFILES =     $(addprefix $(OBJDIR)/$(COMM)/,$(UGOBJ))
+UGCPLEXOBJFILES +=	$(addprefix $(OBJDIR)/$(COMM)/,$(UGCPLEXOBJ))
+UGCPLEXSRC      =     $(addprefix $(SRCDIR)/,$(UGCPLEXOBJ:.o=.cpp))
+UGCPLEXDEP      =     $(SRCDIR)/depend.sciplib.$(OPT)
+UGCPLEXLINK     =     $(LIBDIR)/lib$(UGCPLEXSHORTNAME).$(BASE).$(LIBEXT)
+UGCPLEXSHORTLINK =    $(LIBDIR)/lib$(UGCPLEXSHORTNAME).$(LIBEXT)
 
 endif
 
@@ -268,11 +488,11 @@ MAINOBJFILES	=	$(addprefix $(OBJDIR)/$(COMM)/,$(MAINOBJ))
 #-----------------------------------------------------------------------------
 
 ifeq ($(VERBOSE),false)
-.SILENT:	$(MAINFILE) $(MAINOBJFILES) $(MAINSHORTLINK) $(UGOBJFILES)
+.SILENT:	githash $(MAINFILE) $(MAINOBJFILES) $(MAINSHORTLINK) $(UGOBJFILES) $(UGSCIPLIBFILE) $(UGSCIPLIBSHORTLINK) $(UGSCIPLIBLINK)
 endif
 
 .PHONY: all
-all:            $(MAINFILE) $(MAINSHORTLINK) $(UGSCIPLIBFILE)
+all:            githash $(MAINFILE) $(MAINSHORTLINK) $(UGSCIPLIBFILE) $(UGSCIPLIBSHORTLINK) $(UGSCIPLIBLINK)
 
 #.PHONY: lint
 #lint:           $(UGSRC) $(MAINSRC)
@@ -305,8 +525,9 @@ githash::       # do not remove the double-colon
 .PHONY: test
 test:
 		@-(cd check && ln -fs ../$(SCIPDIR)/check/evalcheck.sh);
+		@-(cd check && ln -fs ../$(SCIPDIR)/check/evaluate.sh);
 		@-(cd check && ln -fs ../$(SCIPDIR)/check/check.awk);
-
+		@-(cd check && ln -fs ../$(SCIPDIR)/check/configuration_solufile.sh);
 ifeq ($(COMM),pth)
 		cd check; \
 		$(SHELL) ./check_fscip.sh $(TEST) $(MAINFILE) $(SETTINGS) $(notdir $(MAINFILE)).$(HOSTNAME) $(TIME) $(MEM) $(CONTINUE) $(LOCK) $(VERSION) $(LPS) $(THREADS);
@@ -331,6 +552,16 @@ $(MAINSHORTLINK):	$(MAINFILE)
 		@rm -f $@
 		cd $(dir $@) && ln -s $(notdir $(MAINFILE)) $(notdir $@)
 
+.PHONY: $(UGSCIPLIBSHORTLINK)
+$(UGSCIPLIBSHORTLINK):	$(UGSCIPLIBFILE)
+		@rm -f $@
+		cd $(dir $@) && $(LN_s) $(notdir $(UGSCIPLIBFILE)) $(notdir $@)
+
+.PHONY: $(UGSCIPLIBLINK)
+$(UGSCIPLIBLINK):	$(UGSCIPLIBFILE)
+		@rm -f $@
+		cd $(dir $@) && $(LN_s) $(notdir $(UGSCIPLIBFILE)) $(notdir $@)
+
 $(OBJDIR):
 		@-mkdir -p $(OBJDIR)
 
@@ -344,7 +575,7 @@ $(BINDIR):
 		@-mkdir -p $(BINDIR)
 
 .PHONY: scipcheck
-scipcheck::
+scipcheck:
 ifeq ($(PARASCIP), false)
 		@echo "**************************************************"
 		@echo "*   You should compile SCIP with PARASCIP=true   *"
@@ -398,6 +629,7 @@ depend:		ugdepend maindepend
 -include	$(MAINDEP)
 -include	$(UGDEP)
 
+
 ifeq ($(SOLVER), scip)
 ifeq ($(COMM),pth)
 $(MAINFILE):	scipcheck $(BINDIR) $(OBJDIR) $(COMMOBJSUBDIR) $(UGOBJSUBDIRS) $(SCIPLIBFILE) $(LPILIBFILE) $(SPILIBFILE) $(NLPILIBFILE) $(UGOBJFILES) $(MAINOBJFILES)
@@ -410,13 +642,35 @@ $(MAINFILE):	envcheck $(BINDIR) $(OBJDIR) $(COMMOBJSUBDIR) $(UGOBJSUBDIRS) $(SCI
 endif
 		@echo "-> linking $@"
 		$(LINKCXX) $(MAINOBJFILES) $(UGOBJFILES) $(LINKCXXSCIPALL) \
-		$(OFLAGS) $(LPSLDFLAGS) \
+                $(OFLAGS) $(LPSLDFLAGS) \
 		$(LDFLAGS) $(LINKCXX_o)$@
-# 		$(LINKCXX) $(MAINOBJFILES) $(UGOBJFILES) \
-#  		$(LINKCXX_L)$(SCIPDIR)/lib $(LINKCXX_l)$(SCIPLIB)$(LINKLIBSUFFIX) \
-#               $(LINKCXX_l)$(OBJSCIPLIB)$(LINKLIBSUFFIX) $(LINKCXX_l)$(LPILIB)$(LINKLIBSUFFIX) $(LINKCC_l)$(NLPILIB)$(LINKLIBSUFFIX) \
-#               $(OFLAGS) $(LPSLDFLAGS) \
-#		$(LDFLAGS) $(LINKCXX_o)$@
+endif
+
+ifeq ($(SOLVER), cplex)
+ifeq ($(COMM),pth)
+$(MAINFILE):	$(BINDIR) $(OBJDIR) $(COMMOBJSUBDIR) $(UGOBJSUBDIRS) $(UGOBJFILES) $(MAINOBJFILES)
+endif
+ifeq ($(COMM),mpi)
+$(MAINFILE):	envcheck $(BINDIR) $(OBJDIR) $(COMMOBJSUBDIR) $(UGOBJSUBDIRS) $(UGOBJFILES) $(MAINOBJFILES)
+endif
+		@echo "-> linking $@"
+		$(LINKCXX) $(MAINOBJFILES) $(UGOBJFILES) \
+		$(CLNFLAGS) $(LINKCXX_o)$@
+endif
+
+ifeq ($(SOLVER), xpress)
+ifeq ($(COMM),pth)
+$(MAINFILE):	$(BINDIR) $(OBJDIR) $(COMMOBJSUBDIR) $(UGOBJSUBDIRS) $(UGOBJFILES) $(MAINOBJFILES)
+endif
+ifeq ($(COMM),cpp11)
+$(MAINFILE):	$(BINDIR) $(OBJDIR) $(COMMOBJSUBDIR) $(UGOBJSUBDIRS) $(UGOBJFILES) $(MAINOBJFILES)
+endif
+ifeq ($(COMM),mpi)
+$(MAINFILE):	envcheck $(BINDIR) $(OBJDIR) $(COMMOBJSUBDIR) $(UGOBJSUBDIRS) $(UGOBJFILES) $(MAINOBJFILES)
+endif
+		@echo "-> linking $@"
+		$(LINKCXX) $(MAINOBJFILES) $(UGOBJFILES) \
+		$(XLNFLAGS) $(LINKCXX_o)$@
 endif
 
 ifeq ($(SOLVER),scip)

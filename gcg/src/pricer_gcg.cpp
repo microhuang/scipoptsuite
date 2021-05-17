@@ -6,7 +6,7 @@
 /*                  of the branch-cut-and-price framework                    */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/* Copyright (C) 2010-2019 Operations Research, RWTH Aachen University       */
+/* Copyright (C) 2010-2020 Operations Research, RWTH Aachen University       */
 /*                         Zuse Institute Berlin (ZIB)                       */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -2687,6 +2687,7 @@ SCIP_RETCODE ObjPricerGcg::pricingLoop(
    int j;
    int nfoundvars;
    SCIP_Bool optimal;
+   bool probingnode;
 
 #ifdef SCIP_STATISTIC
    SCIP_Real** olddualvalues;
@@ -2716,6 +2717,9 @@ SCIP_RETCODE ObjPricerGcg::pricingLoop(
       *lowerbound = -SCIPinfinity(scip_);
 
    maxniters = pricingcontroller->getMaxNIters();
+
+   // disable colpool while probing mode is active (can be removed after a feasibility check (#586) is implemented)
+   probingnode = (SCIPnodeGetType(SCIPgetCurrentNode(scip_)) == SCIP_NODETYPE_PROBINGNODE);
 
    SCIP_CALL( SCIPgetLPI(scip_, &lpi) );
 
@@ -2753,7 +2757,7 @@ SCIP_RETCODE ObjPricerGcg::pricingLoop(
 #endif
 
    /* todo: We avoid checking for feasibility of the columns using this hack */
-   if( pricerdata->usecolpool )
+   if( pricerdata->usecolpool && !probingnode )
       SCIP_CALL( GCGcolpoolUpdateNode(colpool) );
 
    colpoolupdated = FALSE;
@@ -2842,7 +2846,7 @@ SCIP_RETCODE ObjPricerGcg::pricingLoop(
       }
 
       /* todo: do this inside the updateRedcostColumnPool */
-      if( !colpoolupdated && pricerdata->usecolpool )
+      if( !colpoolupdated && pricerdata->usecolpool && !probingnode )
       {
          /* update reduced cost of cols in colpool */
          SCIP_CALL( GCGcolpoolUpdateRedcost(colpool) );
@@ -2851,7 +2855,7 @@ SCIP_RETCODE ObjPricerGcg::pricingLoop(
       }
 
       /* check if colpool already contains columns with negative reduced cost */
-      if( pricerdata->usecolpool )
+      if( pricerdata->usecolpool && !probingnode )
       {
          SCIP_Bool foundvarscolpool;
          int oldnfoundcols;
@@ -3064,7 +3068,7 @@ SCIP_RETCODE ObjPricerGcg::pricingLoop(
    SCIPdebugMessage("*** Pricing loop finished, found %d improving columns.\n", nfoundvars);
 
    /* Add new columns as variables to the master problem or move them to the column pool */
-   SCIP_CALL( GCGpricestoreApplyCols(pricestore, colpool, pricerdata->usecolpool, &nfoundvars) );
+   SCIP_CALL( GCGpricestoreApplyCols(pricestore, colpool, (pricerdata->usecolpool && !probingnode), &nfoundvars) );
 
    SCIPdebugMessage("Added %d new variables.\n", nfoundvars);
 
@@ -3917,6 +3921,7 @@ SCIP_DECL_PRICERFARKAS(ObjPricerGcg::scip_farkas)
    SCIP_RETCODE retcode;
    SCIP_SOL** origsols;
    int norigsols;
+   int nstoredsols;
 
    assert(scip == scip_);
    assert(pricer != NULL);
@@ -3948,19 +3953,27 @@ SCIP_DECL_PRICERFARKAS(ObjPricerGcg::scip_farkas)
 
    /* Add already known solutions for the original problem to the master variable space */
    /** @todo This is just a workaround around SCIP stages! */
+   nstoredsols = 0;
    if( farkaspricing->getCalls() == 0 )
    {
       int i;
 
       for( i = 0; i < norigsols; ++i )
       {
+         SCIP_Bool stored;
          assert(origsols[i] != NULL);
          SCIPdebugMessage("Transferring original feasible solution found by <%s> to master problem\n",
             SCIPsolGetHeur(origsols[i]) == NULL ? "relaxation" : SCIPheurGetName(SCIPsolGetHeur(origsols[i])));
-         SCIP_CALL( GCGmasterTransOrigSolToMasterVars(scip, origsols[i], NULL) );
+         SCIP_CALL( GCGmasterTransOrigSolToMasterVars(scip, origsols[i], &stored) );
+         if( stored )
+         {
+            ++nstoredsols;
+         }
       }
+      SCIPdebugMessage("GCGmasterTransOrigSolToMasterVars() transferred %d original feasible solutions\n",
+         nstoredsols);
       /* return if we transferred solutions as the master should be feasible */
-      if( norigsols > 0 )
+      if( nstoredsols > 0 )
       {
          farkaspricing->incCalls();
 #ifdef SCIP_STATISTIC

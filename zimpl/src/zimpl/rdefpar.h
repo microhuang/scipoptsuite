@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,46 +33,46 @@ extern "C" {
 typedef struct read_param        RPar;
 typedef struct read_definition   RDef;
 
-/*lint -sem(       rdef_new, nulterm(1), nulterm(2), 1p && 2p, @P > malloc(1P)) */
-extern RDef*       rdef_new(const char* filename, const char* pattern);
-/*lint -sem(       rdef_free, custodial(1), 1p == 1) */
-extern void        rdef_free(RDef* rdef);
-/*lint -sem(       rdef_is_valid, 1p == 1) */
-extern bool        rdef_is_valid(const RDef* rdef);
-/*lint -sem(       rdef_copy, 1p == 1, @P > malloc(1P)) */
-extern RDef*       rdef_copy(const RDef* rdef);
-/*lint -sem(       rdef_set_param, 1p == 1 && 2p == 1) */
-extern void        rdef_set_param(RDef* rdef, const RPar* rpar);
-/*lint -sem(       rdef_get_filename, 1p == 1, @p && nulterm(@)) */
-extern const char* rdef_get_filename(const RDef* rdef);
-/*lint -sem(       rdef_get_pattern, 1p == 1, @p && nulterm(@)) */
-extern const char* rdef_get_pattern(const RDef* rdef);
-/*lint -sem(       rdef_get_comment, 1p == 1, @p && nulterm(@)) */
-extern const char* rdef_get_comment(const RDef* rdef);
-/*lint -sem(       rdef_get_match, 1p == 1) */
-extern const char* rdef_get_match(const RDef* rdef);
-/*lint -sem(       rdef_get_use, 1p == 1) */
-extern int         rdef_get_use(const RDef* rdef);
-/*lint -sem(       rdef_get_skip, 1p == 1) */
-extern int         rdef_get_skip(const RDef* rdef);
+//lint -sem(       rdef_new, 1p, 2p, @P >= malloc(1)) 
+extern RDef*       rdef_new(const char* filename, const char* pattern) expects_NONNULL returns_NONNULL;
+//lint -sem(       rdef_free, custodial(1), inout(1), 1p == 1) 
+extern void        rdef_free(RDef* rdef) expects_NONNULL;
+//lint -sem(       rdef_is_valid, pure, 1p == 1) 
+extern bool        rdef_is_valid(const RDef* rdef) expects_NONNULL is_PURE;
+//lint -sem(       rdef_copy, 1p == 1, @P >= malloc(1)) 
+extern RDef*       rdef_copy(const RDef* rdef) expects_NONNULL returns_NONNULL;
+//lint -sem(       rdef_set_param, inout(1), 1p == 1, 2p == 1) 
+extern void        rdef_set_param(RDef* rdef, const RPar* rpar) expects_NONNULL;
+//lint -sem(       rdef_get_filename, pure, 1p == 1, @p) 
+extern const char* rdef_get_filename(const RDef* rdef) expects_NONNULL returns_NONNULL is_PURE;
+//lint -sem(       rdef_get_pattern, pure, 1p == 1, @p) 
+extern const char* rdef_get_pattern(const RDef* rdef) expects_NONNULL returns_NONNULL is_PURE;
+//lint -sem(       rdef_get_comment, pure, 1p == 1, @p) 
+extern const char* rdef_get_comment(const RDef* rdef) expects_NONNULL returns_NONNULL is_PURE;
+//lint -sem(       rdef_get_match, pure, 1p == 1, r_null) 
+extern const char* rdef_get_match(const RDef* rdef) expects_NONNULL is_PURE;
+//lint -sem(       rdef_get_use, pure, 1p == 1, chneg(@)) 
+extern int         rdef_get_use(const RDef* rdef) expects_NONNULL is_PURE;
+//lint -sem(       rdef_get_skip, pure, 1p == 1, chneg(@)) 
+extern int         rdef_get_skip(const RDef* rdef) expects_NONNULL is_PURE;
 
-/*lint -sem(       rpar_new_skip, @P > malloc(1P)) */
-extern RPar*       rpar_new_skip(int skip);
-/*lint -sem(       rpar_new_use, @P > malloc(1P)) */
-extern RPar*       rpar_new_use(int use);
-/*lint -sem(       rpar_new_comment, 1p && nulterm(1), @P > malloc(1P)) */
-extern RPar*       rpar_new_comment(const char* comment);
-/*lint -sem(       rpar_new_match, 1p && nulterm(1), @P > malloc(1P)) */
-extern RPar*       rpar_new_match(const char* match);
-/*lint -sem(       rpar_free, custodial(1), 1p == 1) */
-extern void        rpar_free(RPar* rpar);
-/*lint -sem(       rpar_is_valid, 1p == 1) */
-extern bool        rpar_is_valid(const RPar* rpar);
-/*lint -sem(       rpar_copy, 1p == 1, @P > malloc(1P)) */
-extern RPar*       rpar_copy(const RPar* rpar);
+//lint -sem(       rpar_new_skip, chneg(1), @P >= malloc(1)) 
+extern RPar*       rpar_new_skip(int skip) returns_NONNULL;
+//lint -sem(       rpar_new_use, chneg(1), @P >= malloc(1)) 
+extern RPar*       rpar_new_use(int use) returns_NONNULL;
+//lint -sem(       rpar_new_comment, 1p, @P >= malloc(1)) 
+extern RPar*       rpar_new_comment(const char* comment) expects_NONNULL returns_NONNULL;
+//lint -sem(       rpar_new_match, 1p, @P >= malloc(1)) 
+extern RPar*       rpar_new_match(const char* match) expects_NONNULL returns_NONNULL;
+//lint -sem(       rpar_free, custodial(1), inout(1), 1p == 1) 
+extern void        rpar_free(RPar* rpar) expects_NONNULL;
+//lint -sem(       rpar_is_valid, pure, 1p == 1) 
+extern bool        rpar_is_valid(const RPar* rpar) expects_NONNULL is_PURE;
+//lint -sem(       rpar_copy, 1p == 1, @P >= malloc(1)) 
+extern RPar*       rpar_copy(const RPar* rpar) expects_NONNULL returns_NONNULL;
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _RDEFPAR_H_ */
+#endif // _RDEFPAR_H_ 
 

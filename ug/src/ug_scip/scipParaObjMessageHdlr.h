@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -59,6 +59,9 @@ public:
    /** destructor */
    virtual ~ScipParaObjMessageHdlr();
 
+   /** return log file */
+   FILE* getlogfile() const { return logfile; };
+
    /** error message print method of message handler
     *
     *  This method is invoked, if SCIP wants to display an error message to the screen or a file
@@ -99,6 +102,12 @@ public:
       const char*        msg                 /**< string to output into the file */
       );
 };
+
+extern "C" {
+/** error message function as used by SCIP */
+extern
+SCIP_DECL_ERRORPRINTING(scip_errorfunction);
+}
 
 }
 

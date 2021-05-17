@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,13 +36,13 @@ typedef enum con_name_format     ConNameForm;
 
 extern void        conname_format(ConNameForm format);
 extern void        conname_free(void);
-/*lint -sem(       conname_set, nulterm(1), 1p) */
-extern bool        conname_set(const char* prefix);
-/*lint -sem(       conname_set, @p && nulterm(@)) */
-extern const char* conname_get(void);
+//lint -sem(       conname_set, 1p) 
+extern bool        conname_set(const char* prefix) expects_NONNULL;
+//lint -sem(       conname_get, @p) 
+extern const char* conname_get(void) returns_NONNULL;
 extern void        conname_next(void);
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _CONNAME_H_ */
+#endif // _CONNAME_H_ 

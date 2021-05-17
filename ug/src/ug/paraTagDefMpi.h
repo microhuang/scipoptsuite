@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -47,10 +47,12 @@ static const int TagDiffSubproblem9       = TAG_MPI_FIRST + 10;
 static const int TagDiffSubproblem10      = TAG_MPI_FIRST + 11;
 static const int TagDiffSubproblem11      = TAG_MPI_FIRST + 12;
 static const int TagDiffSubproblem12      = TAG_MPI_FIRST + 13;
-static const int TagSolution1             = TAG_MPI_FIRST + 14;
-static const int TagInitialStat1          = TAG_MPI_FIRST + 15;
+static const int TagDiffSubproblem13      = TAG_MPI_FIRST + 14;
+static const int TagDiffSubproblem14      = TAG_MPI_FIRST + 15;
+static const int TagSolution1             = TAG_MPI_FIRST + 16;
+static const int TagInitialStat1          = TAG_MPI_FIRST + 17;
 //---------------------------------------------------------------
-static const int TAG_MPI_LAST             = TAG_MPI_FIRST + 15;
+static const int TAG_MPI_LAST             = TAG_MPI_FIRST + 17;
 static const int N_MPI_TAGS               = TAG_MPI_LAST - TAG_FIRST + 1;
 }
 

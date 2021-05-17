@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -38,6 +38,7 @@ namespace soplex
    but given an primal/dual solution for the simplified SPxLP, the simplifier
    can reconstruct the primal/dual solution of the unsimplified LP.
 */
+template <class R>
 class SPxSimplifier
 {
 protected:
@@ -65,9 +66,9 @@ protected:
    /// number of kept left- and right-hand sides
    int         m_keptLRhs;
    /// objective offset
-   Real        m_objoffset;
+   R        m_objoffset;
    /// minimal reduction (sum of removed rows/cols) to continue simplification
-   Real        m_minReduction;
+   R        m_minReduction;
    /// message handler
    SPxOut*     spxout;
    ///@}
@@ -156,7 +157,7 @@ public:
    /// destructor.
    virtual ~SPxSimplifier()
    {
-      m_name = 0;
+      m_name = nullptr;
       m_timeUsed->~Timer();
       spx_free(m_timeUsed);
    }
@@ -172,7 +173,7 @@ public:
    {
       return m_name;
    }
-   virtual Real timeUsed() const
+   virtual R timeUsed() const
    {
       return m_timeUsed->time();
    }
@@ -182,13 +183,14 @@ public:
    /**@name Simplifying / unsimplifying */
    ///@{
    /// simplify SPxLP \p lp with identical primal and dual feasibility tolerance.
-   virtual Result simplify(SPxLP& lp, Real eps, Real delta) = 0;
+   virtual Result simplify(SPxLPBase<R>& lp, R eps, R delta) = 0;
    /// simplify SPxLP \p lp with independent primal and dual feasibility tolerance.
-   virtual Result simplify(SPxLP& lp, Real eps, Real feastol, Real opttol,
-                           bool keepbounds = false) = 0;
+   virtual Result simplify(SPxLPBase<R>& lp, R eps, R feastol, R opttol, bool keepbounds = false) = 0;
    /// reconstructs an optimal solution for the unsimplified LP.
-   virtual void unsimplify(const Vector&, const Vector&, const Vector&, const Vector&,
-                           const SPxSolver::VarStatus[], const SPxSolver::VarStatus[], bool isOptimal = true) = 0;
+   virtual void unsimplify(const VectorBase<R>&, const VectorBase<R>&, const VectorBase<R>&,
+                           const VectorBase<R>&,
+                           const typename SPxSolverBase<R>::VarStatus[], const typename SPxSolverBase<R>::VarStatus[],
+                           bool isOptimal = true) = 0;
    /// returns result status of the simplification
    virtual Result result() const = 0;
    /// specifies whether an optimal solution has already been unsimplified.
@@ -197,41 +199,41 @@ public:
       return false;
    }
    /// returns a reference to the unsimplified primal solution.
-   virtual const Vector& unsimplifiedPrimal() = 0;
+   virtual const VectorBase<R>& unsimplifiedPrimal() = 0;
 
    /// returns a reference to the unsimplified dual solution.
-   virtual const Vector& unsimplifiedDual() = 0;
+   virtual const VectorBase<R>& unsimplifiedDual() = 0;
 
    /// returns a reference to the unsimplified slack values.
-   virtual const Vector& unsimplifiedSlacks() = 0;
+   virtual const VectorBase<R>& unsimplifiedSlacks() = 0;
 
    /// returns a reference to the unsimplified reduced costs.
-   virtual const Vector& unsimplifiedRedCost() = 0;
+   virtual const VectorBase<R>& unsimplifiedRedCost() = 0;
 
    /// gets basis status for a single row.
-   virtual SPxSolver::VarStatus getBasisRowStatus(int) const = 0;
+   virtual typename SPxSolverBase<R>::VarStatus getBasisRowStatus(int) const = 0;
 
    /// gets basis status for a single column.
-   virtual SPxSolver::VarStatus getBasisColStatus(int) const = 0;
+   virtual typename SPxSolverBase<R>::VarStatus getBasisColStatus(int) const = 0;
 
    /// get optimal basis.
-   virtual void getBasis(SPxSolver::VarStatus[], SPxSolver::VarStatus[], const int rowsSize = -1,
-                         const int colsSize = -1) const = 0;
+   virtual void getBasis(typename SPxSolverBase<R>::VarStatus[],
+                         typename SPxSolverBase<R>::VarStatus[], const int rowsSize = -1, const int colsSize = -1) const = 0;
 
    /// get objective offset.
-   virtual Real getObjoffset() const
+   virtual R getObjoffset() const
    {
       return m_objoffset;
    }
 
    /// add objective offset.
-   virtual void addObjoffset(const Real val)
+   virtual void addObjoffset(const R val)
    {
       m_objoffset += val;
    }
 
    /// set minimal reduction threshold to continue simplification
-   virtual void setMinReduction(const Real minRed)
+   virtual void setMinReduction(const R minRed)
    {
       m_minReduction = minRed;
    }
@@ -251,7 +253,8 @@ public:
 };
 
 /// Pretty-printing of simplifier status
-std::ostream& operator<<(std::ostream& os, const SPxSimplifier::Result& status);
+template <class R>
+std::ostream& operator<<(std::ostream& os, const typename SPxSimplifier<R>::Result& status);
 
 } // namespace soplex
 #endif // _SPXSIMPLIFIER_H_

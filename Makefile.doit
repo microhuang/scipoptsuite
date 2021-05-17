@@ -3,7 +3,7 @@
 #*                  This file is part of the program and library             *
 #*         SCIP --- Solving Constraint Integer Programs                      *
 #*                                                                           *
-#*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            *
+#*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            *
 #*                            fuer Informationstechnik Berlin                *
 #*                                                                           *
 #*  SCIP is distributed under the terms of the ZIB Academic Licence.         *
@@ -52,7 +52,7 @@ SCIPOPTLIBSHORT	=	libscipopt.$(LIBEXT)
 SCIPOPTOBJFILES	=	$(SCIPDIR)/$(LIBOBJDIR)/*/*.o
 
 ifeq ($(LPS),spx2)
-SCIPOPTOBJFILES	+=	$(SOPLEXDIR)/obj/O.$(OSTYPE).$(ARCH).$(COMP).$(LPSOPT)/lib/*o
+SCIPOPTOBJFILES	+=	$(SOPLEXDIR)/obj/O.$(OSTYPE).$(ARCH).$(COMP).$(LPSOPT)/lib/soplex/*o
 endif
 
 ZIMPLOBJECTS =          blkmem.o bound.o code.o conname.o define.o elem.o entry.o \
@@ -118,6 +118,15 @@ SOFTLINKS	+=	$(ZIMPLINCLINK)
 SOFTLINKS	+=	$(ZIMPLLIBLINK)
 
 #-----------------------------------------------------------------------------
+# PAPILO environment
+#-----------------------------------------------------------------------------
+
+DIRECTORIES	+=	$(SCIPDIR)/$(LIBDIR)/include/
+PAPILOINC	=	$(PAPILODIR)
+PAPILOINCLINK	=	$(SCIPDIR)/lib/include/papilo
+SOFTLINKS	+=	$(PAPILOINCLINK)
+
+#-----------------------------------------------------------------------------
 # external libraries
 #-----------------------------------------------------------------------------
 
@@ -157,7 +166,7 @@ all: scipbinary
 
 
 
-$(DIRECTORIES):	$(SCIPDIR) $(SOPLEXDIR) $(ZIMPLDIR)
+$(DIRECTORIES):	$(SCIPDIR) $(SOPLEXDIR) $(ZIMPLDIR) $(PAPILODIR)
 		@echo "** Creating directory \"$@\"."
 		@-mkdir -p $@
 
@@ -206,6 +215,10 @@ $(ZIMPLINCLINK):	softlinkmsg $(SCIPDIR)
 		@rm -rf $@
 		@$(LN_s) $(ZIMPLINC) $@
 
+$(PAPILOINCLINK):	softlinkmsg $(SCIPDIR)
+		@rm -rf $@
+		@$(LN_s) $(PAPILOINC) $@
+
 $(ZIMPLLIBLINK):	softlinkmsg $(SCIPDIR)
 ifeq ($(ZIMPL),true)
 		@rm -f $@
@@ -225,14 +238,14 @@ $(UGSCIPLINK):	softlinkmsg $(UGDIR)
 sciplibs:	$(DIRECTORIES) $(LIBS) $(SOFTLINKS)
 		@echo ""
 		@echo "** Building SCIP libraries."
-		@$(MAKE) -C $(SCIPDIR) libs READLINE=$(READLINE) LPS=$(LPS) LPSOPT=$(LPSOPT) ZIMPL=$(ZIMPL) ZIMPLOPT=$(ZIMPLOPT) ZLIB=$(ZLIB) MAKESOFTLINKS=$(MAKESOFTLINKS) OPT=$(OPT) SYM=$(SYM) SPX_LEGACY=$(SPX_LEGACY) SHARED=$(SHARED)
+		@$(MAKE) -C $(SCIPDIR) libs READLINE=$(READLINE) LPS=$(LPS) LPSOPT=$(LPSOPT) ZIMPL=$(ZIMPL) ZIMPLOPT=$(ZIMPLOPT) ZLIB=$(ZLIB) MAKESOFTLINKS=$(MAKESOFTLINKS) OPT=$(OPT) SYM=$(SYM) SPX_LEGACY=$(SPX_LEGACY) SHARED=$(SHARED) PAPILO=$(PAPILO)
 		@echo ""
 
 .PHONY:		scipbinary
 scipbinary:	$(DIRECTORIES) $(LIBS) $(SOFTLINKS)
 		@echo ""
 		@echo "** Building SCIP libraries and executable."
-		@$(MAKE) -C $(SCIPDIR) READLINE=$(READLINE) LPS=$(LPS) LPSOPT=$(LPSOPT) ZIMPL=$(ZIMPL) ZIMPLOPT=$(ZIMPLOPT) ZLIB=$(ZLIB) MAKESOFTLINKS=$(MAKESOFTLINKS) OPT=$(OPT) SYM=$(SYM) SPX_LEGACY=$(SPX_LEGACY)
+		@$(MAKE) -C $(SCIPDIR) READLINE=$(READLINE) LPS=$(LPS) LPSOPT=$(LPSOPT) ZIMPL=$(ZIMPL) ZIMPLOPT=$(ZIMPLOPT) ZLIB=$(ZLIB) MAKESOFTLINKS=$(MAKESOFTLINKS) OPT=$(OPT) SYM=$(SYM) SPX_LEGACY=$(SPX_LEGACY) PAPILO=$(PAPILO)
 		@echo ""
 		@echo "** Build complete."
 		@echo "** Find your SCIP binary in \"$(SCIPDIR)/bin\"."
@@ -270,7 +283,7 @@ soplex:   $(SOPLEXDIR)
 gcg:		sciplibs $(GCGDIRECTORIES) $(GCGSCIPLINK)
 		@echo ""
 		@echo "** Building GCG executable."
-		@$(MAKE) -C $(GCGDIR) READLINE=$(READLINE) LPS=$(LPS) LPSOPT=$(LPSOPT) ZIMPL=$(ZIMPL) ZIMPLOPT=$(ZIMPLOPT) ZLIB=$(ZLIB) OPT=$(OPT)
+		@$(MAKE) -C $(GCGDIR) READLINE=$(READLINE) LPS=$(LPS) LPSOPT=$(LPSOPT) ZIMPL=$(ZIMPL) ZIMPLOPT=$(ZIMPLOPT) ZLIB=$(ZLIB) OPT=$(OPT) PAPILO=$(PAPILO)
 		@echo ""
 		@echo "** Build complete."
 		@echo "** Find your GCG binary in \"$(GCGDIR)/bin\"."
@@ -280,7 +293,7 @@ gcg:		sciplibs $(GCGDIRECTORIES) $(GCGSCIPLINK)
 ug:		sciplibs $(UGDIRECTORIES) $(UGSCIPLINK)
 		@echo ""
 		@echo "** Building UG executable."
-		@$(MAKE) -C $(UGDIR) READLINE=$(READLINE) LPS=$(LPS) LPSOPT=$(LPSOPT) ZIMPL=$(ZIMPL) ZIMPLOPT=$(ZIMPLOPT) ZLIB=$(ZLIB) MAKESOFTLINKS=$(MAKESOFTLINKS) OPT=$(OPT)
+		@$(MAKE) -C $(UGDIR) READLINE=$(READLINE) LPS=$(LPS) LPSOPT=$(LPSOPT) ZIMPL=$(ZIMPL) ZIMPLOPT=$(ZIMPLOPT) ZLIB=$(ZLIB) MAKESOFTLINKS=$(MAKESOFTLINKS) OPT=$(OPT) PAPILO=$(PAPILO)
 		@echo ""
 		@echo "** Build complete."
 		@echo "** Find your UG binary in \"$(UGDIR)/bin\"."

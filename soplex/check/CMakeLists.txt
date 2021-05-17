@@ -63,6 +63,20 @@ set(settings
     polish2
     )
 
+if(BOOST)
+
+# use GREATER to work with old cmake versions
+if(${Boost_VERSION_MACRO} GREATER "106999")
+    set(settings
+        ${settings}
+        mpf)
+   if(SOPLEX_HAVE_FLOAT128)
+    set(settings
+        ${settings}
+        quad)
+   endif()
+endif()
+
 #
 # define a macro to add tests
 #
@@ -108,3 +122,4 @@ endmacro(add_instancetests)
 #
 add_instancetests( successInstances "Success" )
 add_instancetests( failInstances "Fail" )
+endif()

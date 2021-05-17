@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -55,7 +55,8 @@ void ScipParaObjMessageHdlr::logMessage(
    const char*           msg                 /**< message to print */
    )
 {
-
+   if( file == NULL )
+      file = stdout;
    if( !quiet || (file != stdout && file != stderr) )
    {
       fputs(msg, file);
@@ -121,4 +122,13 @@ void ScipParaObjMessageHdlr::scip_info(
    logMessage(file, msg);
 }
 
+extern "C" {
+/** error message function as used by SCIP */
+SCIP_DECL_ERRORPRINTING(scip_errorfunction)
+{
+   assert( data != 0 );
+   ScipParaObjMessageHdlr* objmessagehdlr = (ScipParaObjMessageHdlr*) data;
 
+   objmessagehdlr->scip_error(0, objmessagehdlr->getlogfile(), msg);
+}
+}

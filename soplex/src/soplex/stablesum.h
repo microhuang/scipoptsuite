@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -15,10 +15,9 @@
 
 #ifndef _SOPLEX_STABLE_SUM_H_
 #define _SOPLEX_STABLE_SUM_H_
+#include <type_traits>
 
 // #define CHECK_STABLESUM  // double check the stable sum computation
-
-#include <type_traits>
 
 namespace soplex
 {
@@ -46,6 +45,7 @@ public:
    {
       return sum;
    }
+
 };
 
 template <>
@@ -85,14 +85,26 @@ public:
    operator double() const
    {
 #ifdef CHECK_STABLESUM
+
       if(spxAbs(checksum - (sum + c)) >= 1e-6)
          printf("stablesum viol: %g, rel: %g, checksum: %g\n", spxAbs(checksum - (sum + c)),
-            spxAbs(checksum - (sum + c))/MAXIMUM(1.0, MAXIMUM(spxAbs(checksum), spxAbs(sum+c))), checksum);
+                spxAbs(checksum - (sum + c)) / MAXIMUM(1.0, MAXIMUM(spxAbs(checksum), spxAbs(sum + c))), checksum);
+
       assert(spxAbs(checksum - (sum + c)) < 1e-6);
 #endif
       return sum + c;
    }
 };
+
+/// Output operator.
+template < class T >
+std::ostream& operator<<(std::ostream& s, const StableSum<T>& sum)
+{
+   s << static_cast<T>(sum);
+
+   return s;
+}
+
 }
 
 #endif

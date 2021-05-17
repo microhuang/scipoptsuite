@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2003-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2003-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -38,9 +38,9 @@ extern mpq_t const_zero;
 extern mpq_t const_one;
 extern mpq_t const_minus_one;
 
-/*lint -sem(gmp_str2mpq, 1p && 2p && nulterm(2)) */
+//lint -sem(gmp_str2mpq, inout(1), 1p, 2p) 
 extern void gmp_str2mpq(mpq_t value, const char* num);
-/*lint -sem(gmp_print, 1p == 1 && 2p ) */
+//lint -sem(gmp_print, inout(1), 1p == 1, 2p) 
 extern void gmp_print_mpq(FILE* fp, const mpq_t qval);
 extern void gmp_init(bool verb, bool with_management);
 extern void gmp_exit(void);
@@ -48,4 +48,4 @@ extern void gmp_exit(void);
 #ifdef __cplusplus
 }
 #endif
-#endif /* _GMPMISC_H */
+#endif // _GMPMISC_H 

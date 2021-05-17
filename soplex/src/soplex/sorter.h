@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -23,7 +23,6 @@
 
 namespace soplex
 {
-
 #define SHELLSORTMAX 25
 
 /** shell-sort an array of data elements; use it only for arrays smaller than 25 entries */
@@ -92,7 +91,9 @@ void SPxQuicksort(T* keys, int end, COMPARATOR& compare, int start = 0, bool typ
       int mid;
 
       /* select pivot element */
-      mid = (start + end) / 2;
+      mid = start + (end - start) / 2; // Instead of (start + end)/2 because the
+      // latter can overflow if start + end >
+      // INT_MAX
       pivotkey = keys[mid];
 
       /* partition the array into elements < pivot [start,hi] and elements >= pivot [lo,end] */
@@ -222,23 +223,19 @@ void SPxQuicksort(T* keys, int end, COMPARATOR& compare, int start = 0, bool typ
  * - < 0, if \p t1 is to appear before \p t2,
  * - = 0, if \p t1 and \p t2 can appear in any order, or
  * - > 0, if \p t1 is to appear after \p t2.
+ *
+ * @param keys               array of elements to be sorted between index start and end
+ * @param compare            comparator
+ * @param start              index of first element in range to be sorted
+ * @param end                index of last element in range to be sorted, plus 1
+ * @param size               guaranteed number of sorted elements
+ * @param start2             auxiliary start index of sub range used for recursive call
+ * @param end2               auxiliary end index of sub range used for recursive call
+ * @param type               type of sorting, to be more flexable on degenerated cases
  */
 template < class T, class COMPARATOR >
-int SPxQuicksortPart(
-   T*
-   keys,               /**< array of elements to be sorted between index start and end */
-   COMPARATOR&           compare,            /**< comparator */
-   int                   start,              /**< index of first element in range to be sorted */
-   int
-   end,                /**< index of last element in range to be sorted, plus 1 */
-   int                   size,               /**< guaranteed number of sorted elements */
-   int                   start2 =
-      0,         /**< auxiliary start index of sub range used for recursive call */
-   int                   end2 =
-      0,           /**< auxiliary end index of sub range used for recursive call */
-   bool                  type =
-      true         /**< type of sorting, to be more flexable on degenerated cases */
-)
+int SPxQuicksortPart(T* keys, COMPARATOR& compare, int start, int end, int size, int start2 = 0,
+                     int end2 = 0, bool type = true)
 {
    assert(start >= 0);
 
@@ -378,7 +375,7 @@ int SPxQuicksortPart(
    else
    {
       SPxQuicksort(keys, hi + 1, compare, start2, !type);
-      return SPxQuicksortPart(keys, compare, start, end, size + start2 - lo, lo, end2, !type);
+      return SPxQuicksortPart(keys, compare, start, end + 1, size + start2 - lo, lo, end2, !type);
    }
 }
 

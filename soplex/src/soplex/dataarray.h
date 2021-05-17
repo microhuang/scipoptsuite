@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -23,9 +23,11 @@
 #include <stddef.h>
 #include <string.h>
 #include <iostream>
+#include <type_traits>
 
 #include "soplex/spxdefines.h"
 #include "soplex/spxalloc.h"
+#include "soplex/spxid.h"
 
 namespace soplex
 {
@@ -62,6 +64,9 @@ namespace soplex
 template < class T >
 class DataArray
 {
+   static_assert(std::is_trivially_copyable<T>::value || std::is_same<T, SPxId>::value
+                 || std::is_same<T, SPxColId>::value || std::is_same<T, SPxRowId>::value,
+                 "Only trivially copyable types are allowed with DataArray, since it does memcopy");
 private:
    int thesize;           ///< number of used elements in array data
    int themax;            ///< the length of array data and

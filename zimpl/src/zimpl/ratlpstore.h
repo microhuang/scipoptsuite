@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2003-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2003-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -158,15 +158,15 @@ struct qmatentry
 
 /* Internal functions
  */
-/*lint -sem(        lps_getnamesize, 1p, @n > 8) */
-int                 lps_getnamesize(const Lps* lp, LpFormat format);
-/*lint -sem(        lps_makename, nulterm(3), 1p && 2n > 0 && 3p && 4n >= -1) */
-void                lps_makename(char* target, int size, const char* name, int no);
+//lint -sem(        lps_getnamesize, 1p == 1, @n > 8) 
+int                 lps_getnamesize(const Lps* lp, LpFormat format) expects_NONNULL;
+//lint -sem(        lps_makename, 1p, 2n > 0, 3p, 4n >= -1) 
+void                lps_makename(char* target, int size, const char* name, int no) expects_NONNULL;
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _RATLPSTORE_H_ */
+#endif // _RATLPSTORE_H_ 
 
 
 

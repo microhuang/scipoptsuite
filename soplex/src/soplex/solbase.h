@@ -4,7 +4,7 @@
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
 /*    Copyright (C) 1996      Roland Wunderling                              */
-/*                  1996-2019 Konrad-Zuse-Zentrum                            */
+/*                  1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -40,11 +40,14 @@ namespace soplex
  * @brief   Class for storing a primal-dual solution with basis information
  * @ingroup Algo
  */
-template< class R >
+template <class R>
 class SolBase
 {
-   friend class SoPlex;
-   template < class S > friend class SolBase;
+   template <class T> friend class SoPlexBase;
+   // Why do we need the following? This is at least used in the operator=
+   // When Rational solution needs to be copied into Real, the private member
+   // _objVal is accessed.
+   template <class S> friend class SolBase;
 
 public:
    /// is the stored solution primal feasible?
@@ -54,7 +57,7 @@ public:
    }
 
    /// gets the primal solution vector; returns true on success
-   bool getPrimal(VectorBase<R>& vector) const
+   bool getPrimalSol(VectorBase<R>& vector) const
    {
       vector = _primal;
 
@@ -76,7 +79,7 @@ public:
    }
 
    /// gets the primal unbounded ray if available; returns true on success
-   bool getPrimalRay(VectorBase<R>& vector) const
+   bool getPrimalRaySol(VectorBase<R>& vector) const
    {
       if(_hasPrimalRay)
          vector = _primalRay;
@@ -91,7 +94,7 @@ public:
    }
 
    /// gets the dual solution vector; returns true on success
-   bool getDual(VectorBase<R>& vector) const
+   bool getDualSol(VectorBase<R>& vector) const
    {
       vector = _dual;
 
@@ -99,7 +102,7 @@ public:
    }
 
    /// gets the vector of reduced cost values if available; returns true on success
-   bool getRedCost(VectorBase<R>& vector) const
+   bool getRedCostSol(VectorBase<R>& vector) const
    {
       vector = _redCost;
 
@@ -113,7 +116,7 @@ public:
    }
 
    /// gets the Farkas proof if available; returns true on success
-   bool getDualFarkas(VectorBase<R>& vector) const
+   bool getDualFarkasSol(VectorBase<R>& vector) const
    {
       if(_hasDualFarkas)
          vector = _dualFarkas;
@@ -215,12 +218,12 @@ public:
    }
 
 private:
-   DVectorBase<R> _primal;
-   DVectorBase<R> _slacks;
-   DVectorBase<R> _primalRay;
-   DVectorBase<R> _dual;
-   DVectorBase<R> _redCost;
-   DVectorBase<R> _dualFarkas;
+   VectorBase<R> _primal;
+   VectorBase<R> _slacks;
+   VectorBase<R> _primalRay;
+   VectorBase<R> _dual;
+   VectorBase<R> _redCost;
+   VectorBase<R> _dualFarkas;
 
    R _objVal;
 
@@ -266,7 +269,7 @@ private:
    }
 
    /// assignment operator only for friends
-   template < class S >
+   template <class S>
    SolBase<R>& operator=(const SolBase<S>& sol)
    {
       if((SolBase<S>*)this != &sol)
@@ -275,6 +278,7 @@ private:
          _isPrimalFeasible = sol._isPrimalFeasible;
          _primal = sol._primal;
          _slacks = sol._slacks;
+
          _objVal = R(sol._objVal);
 
          _hasPrimalRay = sol._hasPrimalRay;
@@ -294,6 +298,7 @@ private:
 
       return *this;
    }
+
 };
 } // namespace soplex
 

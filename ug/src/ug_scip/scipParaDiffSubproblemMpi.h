@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -54,6 +54,10 @@ class ScipParaDiffSubproblemMpi : public ScipParaDiffSubproblem
    MPI_Datatype createDatatypeLinearConss1(bool memAllocNecessary);
    /** create scipDiffSubproblem datatypeLinearConss2 */
    MPI_Datatype createDatatypeLinearConss2(bool memAllocNecessary);
+   /** create scipDiffSubproblem datatypeBendersLinearConss1 */
+   MPI_Datatype createDatatypeBendersLinearConss1(bool memAllocNecessary);
+   /** create scipDiffSubproblem datatypeBendersLinearConss2 */
+   MPI_Datatype createDatatypeBendersLinearConss2(bool memAllocNecessary);
    /** create scipDiffSubproblem datatypeBoundDisjunctions1 */
    MPI_Datatype createDatatypeBoundDisjunctions1(bool memAllocNecessary);
    /** create scipDiffSubproblem datatypeBoundDisjunctions2 */
@@ -70,13 +74,14 @@ class ScipParaDiffSubproblemMpi : public ScipParaDiffSubproblem
    int nBranchSetppcConss;    // 0 means that this is not used
 
    int nLinearConss;
+   int nBendersLinearConss;
    int nBoundDisjunctions;
    int nVarBranchStats;
    int nVarValueVars;
 
 public:
    /** default constructor */
-   ScipParaDiffSubproblemMpi() : nBranchLinearConss(0), nBranchSetppcConss(0), nLinearConss(0), nBoundDisjunctions(0), nVarBranchStats(0), nVarValueVars(0)
+   ScipParaDiffSubproblemMpi() : nBranchLinearConss(0), nBranchSetppcConss(0), nLinearConss(0), nBendersLinearConss(0), nBoundDisjunctions(0), nVarBranchStats(0), nVarValueVars(0)
    {
       assert( localInfoIncluded == 0 && nBoundChanges == 0 && nLinearConss == 0 );
    }
@@ -92,14 +97,14 @@ public:
          int nAddedConss,
          SCIP_CONS **addedConss
          ) : ScipParaDiffSubproblem(inScip, inScipParaSolver,
-               inNNewBranchVars, inNewBranchVars, inNewBranchBounds,inNewBoundTypes, nAddedConss, addedConss), nBranchLinearConss(0), nBranchSetppcConss(0), nLinearConss(0), nBoundDisjunctions(0), nVarBranchStats(0), nVarValueVars(0)
+               inNNewBranchVars, inNewBranchVars, inNewBranchBounds,inNewBoundTypes, nAddedConss, addedConss), nBranchLinearConss(0), nBranchSetppcConss(0), nLinearConss(0), nBendersLinearConss(0), nBoundDisjunctions(0), nVarBranchStats(0), nVarValueVars(0)
    {
    }
 
    /** Constructor */
    ScipParaDiffSubproblemMpi(
          ScipParaDiffSubproblem *paraDiffSubproblem
-         ) : ScipParaDiffSubproblem(paraDiffSubproblem), nBranchLinearConss(0), nBranchSetppcConss(0), nLinearConss(0), nBoundDisjunctions(0), nVarBranchStats(0), nVarValueVars(0)
+         ) : ScipParaDiffSubproblem(paraDiffSubproblem), nBranchLinearConss(0), nBranchSetppcConss(0), nLinearConss(0), nBendersLinearConss(0), nBoundDisjunctions(0), nVarBranchStats(0), nVarValueVars(0)
    {
    }
 

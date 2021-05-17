@@ -3,22 +3,23 @@
 /*                  This file is part of the program and library             */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SCIP is distributed under the terms of the ZIB Academic License.         */
 /*                                                                           */
 /*  You should have received a copy of the ZIB Academic License              */
-/*  along with SCIP; see the file COPYING. If not visit scip.zib.de.         */
+/*  along with SCIP; see the file COPYING. If not visit scipopt.org.         */
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**@file   scip_param.c
+ * @ingroup OTHER_CFILES
  * @brief  public methods for SCIP parameter handling
  * @author Tobias Achterberg
  * @author Timo Berthold
  * @author Gerald Gamrath
- * @author Robert Lion Gottwald
+ * @author Leona Gottwald
  * @author Stefan Heinz
  * @author Gregor Hendel
  * @author Thorsten Koch
@@ -389,6 +390,12 @@ SCIP_RETCODE SCIPunfixParam(
  *
  *  @return \ref SCIP_OKAY is returned if everything worked. Otherwise a suitable error code is passed. See \ref
  *          SCIP_Retcode "SCIP_RETCODE" for a complete list of error codes.
+ *
+ *  @attention This function is not working the way one would probably expect.
+ *             Even if one finds out how to pass the parameter value via the void* argument, the function will fail
+ *             to correctly set negative or fractional parameter values.
+ *
+ *  @deprecated Use SCIPsetBoolParam, SCIPsetIntParam, SCIPsetRealParam, etc., instead
  */
 SCIP_RETCODE SCIPsetParam(
    SCIP*                 scip,               /**< SCIP data structure */
@@ -862,6 +869,7 @@ SCIP_RETCODE SCIPresetParams(
  *  - \ref SCIP_PARAMEMPHASIS_PHASEFEAS to find feasible solutions during a 3 phase solution process
  *  - \ref SCIP_PARAMEMPHASIS_PHASEIMPROVE to find improved solutions during a 3 phase solution process
  *  - \ref SCIP_PARAMEMPHASIS_PHASEPROOF to proof optimality during a 3 phase solution process
+ *  - \ref SCIP_PARAMEMPHASIS_NUMERICS to solve problems which cause numerical issues
  *
  *  @return \ref SCIP_OKAY is returned if everything worked. Otherwise a suitable error code is passed. See \ref
  *          SCIP_Retcode "SCIP_RETCODE" for a complete list of error codes.
@@ -1005,4 +1013,18 @@ int SCIPgetNParams(
    assert(scip->set != NULL);
 
    return SCIPsetGetNParams(scip->set);
+}
+
+/** returns whether plugins with sub-SCIPs that could cause recursion have been disabled
+ *
+ *  @return the value of the variable set->subscipsoff
+ */
+SCIP_Bool SCIPgetSubscipsOff(
+   SCIP*                 scip                /**< SCIP data structure */
+   )
+{
+   assert(scip != NULL);
+   assert(scip->set != NULL);
+
+   return SCIPsetGetSubscipsOff(scip->set);
 }

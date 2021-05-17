@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -180,6 +180,17 @@ Numb* numb_new_ascii(const char* val)
 }
 
 Numb* numb_new_integer(int val)
+{
+   Numb* numb = numb_new();
+   
+   assert(numb != NULL);
+
+   numb->value.numb = val;
+   
+   return numb;
+}
+
+Numb* numb_new_longlong(long long val)
 {
    Numb* numb = numb_new();
    

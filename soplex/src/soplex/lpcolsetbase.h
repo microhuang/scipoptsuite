@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -50,9 +50,9 @@ private:
    /**@name Data */
    ///@{
 
-   DVectorBase<R> low;     ///< vector of lower bounds.
-   DVectorBase<R> up;      ///< vector of upper bounds.
-   DVectorBase<R> object;  ///< vector of objective coefficients.
+   VectorBase<R> low;     ///< vector of lower bounds.
+   VectorBase<R> up;      ///< vector of upper bounds.
+   VectorBase<R> object;  ///< vector of objective coefficients.
 
    ///@}
 

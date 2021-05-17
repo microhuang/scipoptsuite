@@ -164,7 +164,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 80 "src/zimpl/mmlparse2.y" /* yacc.c:1909  */
+#line 81 "src/zimpl/mmlparse2.y" /* yacc.c:1909  */
 
    unsigned int bits;
    Numb*        numb;

@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -32,12 +32,12 @@ extern "C" {
 
 extern void         str_init(void);
 extern void         str_exit(void);
-/*lint -sem(        str_new, 1p && nulterm(1), @p == 1p && nulterm(@)) */
-extern const char*  str_new(const char* s);
-/*lint -sem(        str_hash, 1p)           */
-extern unsigned int str_hash(const char* s);
+//lint -sem(        str_new, 1p, @p) 
+extern const char*  str_new(const char* s) returns_NONNULL;
+//lint -sem(        str_hash, pure, 1p)           
+extern unsigned int str_hash(const char* s) expects_NONNULL is_PURE;
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _STRSTORE_H_ */
+#endif // _STRSTORE_H_ 

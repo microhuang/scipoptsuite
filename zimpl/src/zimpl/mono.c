@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2007-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2007-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,12 +27,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <stdbool.h>
+//#include <assert.h>
 
 /* #define TRACE 1 */
 
-#include <stdbool.h>
+#include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
 #include "zimpl/elem.h"
@@ -79,7 +81,7 @@ bool mono_is_valid(const Mono* mono)
     || !SID_ok(mono, MONO_SID)
     || !SID_ok2(mono->first, MOEL_SID)
     || mono->count < 1)
-      abort();
+      abort(); //lint !e453 function previously designated pure, calls impure function 'abort'
 
    mem_check(mono);
 
@@ -92,13 +94,13 @@ bool mono_is_valid(const Mono* mono)
       mem_check(e);
 
       if (!SID_ok(e, MOEL_SID))
-         abort();
+         abort(); //lint !e453 function previously designated pure, calls impure function 'abort'
       
       assert(entry_is_valid(e->entry));
       assert(entry_get_type(e->entry) == SYM_VAR);
    }
    if (count != mono->count)
-      abort();
+      abort(); //lint !e453 function previously designated pure, calls impure function 'abort'
    
    return true;
 }
@@ -133,7 +135,7 @@ void mono_mul_entry(
 {
    MonoElem* e;
    Var*      var;
-   MonoElem* last;
+   MonoElem* last = NULL;
    
    Trace("mono_add_elem");
 

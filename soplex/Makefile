@@ -3,7 +3,7 @@
 #*                  This file is part of the class library                   *#
 #*       SoPlex --- the Sequential object-oriented simPlex.                  *#
 #*                                                                           *#
-#*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            *#
+#*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            *#
 #*                            fuer Informationstechnik Berlin                *#
 #*                                                                           *#
 #*  SoPlex is distributed under the terms of the ZIB Academic Licence.       *#
@@ -43,7 +43,7 @@ include make/make.detecthost
 # default settings
 #-----------------------------------------------------------------------------
 
-VERSION		:=	4.0.2
+VERSION		:=	5.0.2
 SPXGITHASH	=
 
 VERBOSE		=	false
@@ -70,9 +70,12 @@ CONTINUE	=	false
 # is it allowed to link to external open source libraries?
 OPENSOURCE	=	true
 
-GMP		=	true
-ZLIB		=	true
-EGLIB		=	false
+GMP      =  true
+MPFR     =  false
+ZLIB     =  true
+EGLIB    =  false
+BOOST    =  true
+QUADMATH =  false
 
 COMP		=	gnu
 CXX		=	g++
@@ -105,170 +108,36 @@ LDFLAGS		=
 ARFLAGS		=	cr
 DFLAGS		=	-MM
 
-GMP_LDFLAGS	=	-lgmp
+GMP_LDFLAGS	= -lgmp
 GMP_CPPFLAGS	=
+BOOST_LDFLAGS = -lboost_program_options
+QUADMATH_LDFLAGS = -lquadmath
 
 SOPLEXDIR	=	$(realpath .)
 SRCDIR		=	src
 BINDIR		=	bin
 LIBDIR		=	lib
 INCLUDEDIR	=	include
-NAME		=	soplex
-LIBHEADER	=	soplex/array.h \
-				soplex/basevectors.h \
-				soplex/classarray.h \
-				soplex/clufactor.h \
-				soplex/clufactor_rational.h \
-				soplex/cring.h \
-				soplex/dataarray.h \
-				soplex/datahashtable.h \
-				soplex/datakey.h \
-				soplex/dataset.h \
-				soplex/didxset.h \
-				soplex/dsvectorbase.h \
-				soplex/dsvector.h \
-				soplex/dvectorbase.h \
-				soplex/dvector.h \
-				soplex/exceptions.h \
-				soplex/gzstream.h \
-				soplex/idlist.h \
-				soplex/idxset.h \
-				soplex/islist.h \
-				soplex/lpcolbase.h \
-				soplex/lpcol.h \
-				soplex/lpcolsetbase.h \
-				soplex/lpcolset.h \
-				soplex/lprowbase.h \
-				soplex/lprow.h \
-				soplex/lprowsetbase.h \
-				soplex/lprowset.h \
-				soplex/mpsinput.h \
-				soplex/nameset.h \
-				soplex/notimer.h \
-				soplex/random.h \
-				soplex/rational.h \
-				soplex/ratrecon.h \
-				soplex/slinsolver.h \
-				soplex/slinsolver_rational.h \
-				soplex/slufactor.h \
-				soplex/slufactor_rational.h \
-				soplex/solbase.h \
-				soplex/sol.h \
-				soplex/sorter.h \
-				soplex/spxalloc.h \
-				soplex/spxautopr.h \
-				soplex/spxbasis.h \
-				soplex/spxboundflippingrt.h \
-				soplex/spxdantzigpr.h \
-				soplex/spxdefaultrt.h \
-				soplex/spxdefines.h \
-				soplex/spxdevexpr.h \
-				soplex/spxequilisc.h \
-				soplex/spxleastsqsc.h \
-				soplex/spxfastrt.h \
-				soplex/spxfileio.h \
-				soplex/spxgeometsc.h \
-				soplex/spxgithash.h \
-				soplex/spxharrisrt.h \
-				soplex/spxhybridpr.h \
-				soplex/spxid.h \
-				soplex/spxlpbase.h \
-				soplex/spxlp.h \
-				soplex/spxmainsm.h \
-				soplex/spxout.h \
-				soplex/spxparmultpr.h \
-				soplex/spxpricer.h \
-				soplex/spxratiotester.h \
-				soplex/spxscaler.h \
-				soplex/spxsimplifier.h \
-				soplex/spxsolver.h \
-				soplex/spxstarter.h \
-				soplex/spxsteepexpr.h \
-				soplex/spxsteeppr.h \
-				soplex/spxsumst.h \
-				soplex/spxvectorst.h \
-				soplex/spxweightpr.h \
-				soplex/spxweightst.h \
-				soplex/ssvectorbase.h \
-				soplex/ssvector.h \
-				soplex/stablesum.h \
-				soplex/statistics.h \
-				soplex/svectorbase.h \
-				soplex/svector.h \
-				soplex/svsetbase.h \
-				soplex/svset.h \
-				soplex/timer.h \
-				soplex/timerfactory.h \
-				soplex/unitvectorbase.h \
-				soplex/unitvector.h \
-				soplex/usertimer.h \
-				soplex/updatevector.h \
-				soplex/validation.h \
-				soplex/vectorbase.h \
-				soplex/vector.h \
-				soplex/wallclocktimer.h \
-				soplex.h
-LIBOBJ		= 	soplex/changesoplex.o \
-				soplex/clufactor.o \
-				soplex/clufactor_rational.o \
+NAME		   =	soplex
+
+LIBOBJ = soplex/clufactor_rational.o \
 				soplex/didxset.o \
-				soplex/enter.o \
 				soplex/gzstream.o \
 				soplex/idxset.o \
-				soplex/leave.o \
 				soplex/mpsinput.o \
 				soplex/nameset.o \
 				soplex/rational.o \
 				soplex/ratrecon.o \
-				soplex/slufactor.o \
-				soplex/solvedbds.o \
 				soplex/slufactor_rational.o \
-				soplex/solverational.o \
-				soplex/solvereal.o \
-				soplex/spxautopr.o \
-				soplex/spxbasis.o \
-				soplex/spxboundflippingrt.o \
-				soplex/spxbounds.o \
-				soplex/spxchangebasis.o \
-				soplex/spxdantzigpr.o \
-				soplex/spxdefaultrt.o \
 				soplex/spxdefines.o \
-				soplex/spxdesc.o \
-				soplex/spxdevexpr.o \
-				soplex/spxequilisc.o \
-				soplex/spxleastsqsc.o \
-				soplex/spxfastrt.o \
-				soplex/spxfileio.o \
-				soplex/spxgeometsc.o \
 				soplex/spxgithash.o \
-				soplex/spxharrisrt.o \
-				soplex/spxhybridpr.o \
 				soplex/spxid.o \
 				soplex/spxlpbase_rational.o \
-				soplex/spxlpbase_real.o \
-				soplex/spxmainsm.o \
 				soplex/spxout.o \
-				soplex/spxparmultpr.o \
-				soplex/spxquality.o \
 				soplex/spxscaler.o \
-				soplex/spxshift.o \
-				soplex/spxsolve.o \
-				soplex/spxsolver.o \
-				soplex/spxstarter.o \
-				soplex/spxsteeppr.o \
-				soplex/spxsumst.o \
-				soplex/spxvecs.o \
-				soplex/spxvectorst.o \
-				soplex/spxweightpr.o \
-				soplex/spxweightst.o \
-				soplex/spxwritestate.o \
-				soplex/statistics.o \
 				soplex/usertimer.o \
-				soplex/validation.o \
-				soplex/wallclocktimer.o \
-				soplex/updatevector.o \
-				soplex/testsoplex.o \
-				soplex.o
+				soplex/wallclocktimer.o
+
 BINOBJ		=	soplexmain.o
 EXAMPLEOBJ	=	example.o
 REPOSIT		=	# template repository, explicitly empty  #spxproof.o
@@ -291,7 +160,8 @@ GCCWARN		=	-pedantic -Wall -W -Wpointer-arith -Wcast-align -Wwrite-strings \
 			-Woverloaded-virtual -Wsign-promo -Wsynth -Wundef \
 			-Wcast-qual \
 			-Wmissing-declarations \
-			-Wno-unused-parameter -Wno-strict-overflow -Wno-long-long
+			-Wno-unused-parameter -Wno-strict-overflow -Wno-long-long \
+	    -Wno-sign-conversion
 #			-Wold-style-cast
 #			-Weffc++
 
@@ -356,8 +226,7 @@ LIBOBJFILES	=	$(addprefix $(LIBOBJDIR)/,$(LIBOBJ))
 BINSRC		=	$(addprefix $(SRCDIR)/,$(BINOBJ:.o=.cpp))
 EXAMPLESRC	=	$(addprefix $(SRCDIR)/,$(EXAMPLEOBJ:.o=.cpp))
 LIBSRC		=	$(addprefix $(SRCDIR)/,$(LIBOBJ:.o=.cpp))
-LIBSRCHEADER	=	$(addprefix $(SRCDIR)/,$(LIBHEADER))
-ALLSRC		=	$(BINSRC) $(EXAMPLESRC) $(LIBSRC) $(LIBSRCHEADER)
+ALLSRC		=	$(BINSRC) $(EXAMPLESRC) $(LIBSRC)
 
 #-----------------------------------------------------------------------------
 # External Libraries
@@ -379,6 +248,33 @@ else
 GMP_LDFLAGS	=
 GMP_CPPFLAGS	=
 endif
+
+ifeq ($(MPFR),true)
+CPPFLAGS += -DSOPLEX_WITH_MPFR
+LDFLAGS += -lmpfr
+else
+# Flags for cpp mpf
+endif
+
+# For boost program options
+ifeq ($(BOOST),true)
+	LDFLAGS += $(BOOST_LDFLAGS)
+	CPPFLAGS += -DSOPLEX_WITH_BOOST
+	ifeq ($(MPFR),false)
+		CPPFLAGS += -DSOPLEX_WITH_CPPMPF
+	endif
+	else
+		BOOST_LDFLAGS =
+endif
+
+# For quadmath support
+ifeq ($(QUADMATH),true)
+	LDFLAGS += $(QUADMATH_LDFLAGS)
+	CPPFLAGS += -DSOPLEX_WITH_FLOAT128
+else
+	QUADMATH_LDFLAGS =
+endif
+
 
 ZLIBDEP		:=	$(SRCDIR)/depend.zlib
 ZLIBSRC		:=	$(shell cat $(ZLIBDEP))
@@ -412,7 +308,7 @@ endif
 endif
 
 ifeq ($(SHARED),true)
-EXT_LIBS	= $(ZLIB_LDFLAGS) $(GMP_LDFLAGS)
+EXT_LIBS	= $(ZLIB_LDFLAGS) $(GMP_LDFLAGS) $(BOOST_LDFLAGS) $(QUADMATH_LDFLAGS)
 endif
 
 
@@ -427,7 +323,12 @@ endif
 
 .PHONY: all
 all:		makelibfile
+ifeq ($(BOOST),true)
 		@$(MAKE) $(BINFILE) $(LIBLINK) $(LIBSHORTLINK) $(BINLINK) $(BINSHORTLINK)
+else
+		@echo "using make without Boost means only the SoPlex library will be built."
+		@echo "To build the binary, set BOOST=true and make sure Boost with program_options is available"
+endif
 
 .PHONY: preprocess
 preprocess:	checkdefines
@@ -471,12 +372,16 @@ example:	$(LIBOBJFILES) $(EXAMPLEOBJFILES) | $(BINDIR) $(EXAMPLEOBJDIR)
 
 .PHONY: makelibfile
 makelibfile:	preprocess
-		@$(MAKE) $(LIBFILE)
+		@$(MAKE) $(LIBFILE) $(LIBLINK) $(LIBSHORTLINK)
 
 $(LIBFILE):	$(LIBOBJFILES) | $(LIBDIR) $(LIBOBJDIR)
 		@echo "-> generating library $@"
 		-rm -f $(LIBFILE)
-		$(LIBBUILD) $(LIBBUILDFLAGS) $(LIBBUILD_o)$@ $(LIBOBJFILES) $(REPOSIT) $(EXT_LIBS)
+ifeq ($(SHARED),true)
+		$(LIBBUILD) $(LIBBUILDFLAGS) $(LIBBUILD_o)$@ $(LIBOBJFILES) $(REPOSIT) $(LDFLAGS)
+else
+		$(LIBBUILD) $(LIBBUILDFLAGS) $(LIBBUILD_o)$@ $(LIBOBJFILES) $(REPOSIT)
+endif
 ifneq ($(RANLIB),)
 		$(RANLIB) $@
 endif

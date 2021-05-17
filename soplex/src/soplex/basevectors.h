@@ -4,7 +4,7 @@
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
 /*    Copyright (C) 1996      Roland Wunderling                              */
-/*                  1996-2019 Konrad-Zuse-Zentrum                            */
+/*                  1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -29,12 +29,12 @@
 #include "soplex/spxdefines.h"
 #include "soplex/rational.h"
 #include "soplex/vectorbase.h"
-#include "soplex/dvectorbase.h"
 #include "soplex/ssvectorbase.h"
 #include "soplex/svectorbase.h"
 #include "soplex/dsvectorbase.h"
 #include "soplex/unitvectorbase.h"
 #include "soplex/svsetbase.h"
+#include "soplex/timer.h"
 
 #define SOPLEX_VECTOR_MARKER   1e-100
 
@@ -65,8 +65,6 @@ VectorBase<R>& VectorBase<R>::operator=(const SVectorBase<S>& vec)
       val[vec.index(i)] = vec.value(i);
    }
 
-   assert(isConsistent());
-
    return *this;
 }
 
@@ -84,8 +82,6 @@ VectorBase<R>& VectorBase<R>::assign(const SVectorBase<S>& vec)
       assert(vec.index(i) < dim());
       val[vec.index(i)] = vec.value(i);
    }
-
-   assert(isConsistent());
 
    return *this;
 }
@@ -331,30 +327,6 @@ VectorBase<R>& VectorBase<R>::multAdd(const S& x, const SSVectorBase<T>& vec)
 
 
 
-// ---------------------------------------------------------------------------------------------------------------------
-//  Methods of DVectorBase
-// ---------------------------------------------------------------------------------------------------------------------
-
-
-
-/// Assignment operator.
-template < class R >
-template < class S >
-inline
-DVectorBase<R>& DVectorBase<R>::operator=(const SVectorBase<S>& vec)
-{
-   // dim() of SVector is not the actual dimension, rather the largest index plus 1
-   // avoiding the reDim() saves unnecessary clearing of values
-   if(vec.dim() > VectorBase<R>::dim())
-      reDim(vec.dim());
-
-   VectorBase<R>::operator=(vec);
-
-   assert(isConsistent());
-
-   return *this;
-}
-
 
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -410,7 +382,7 @@ SSVectorBase<R>& SSVectorBase<R>::multAdd(S xx, const SVectorBase<T>& vec)
 {
    if(isSetup())
    {
-      R* v = VectorBase<R>::val;
+      R* v = VectorBase<R>::val.data();
       R x;
       bool adjust = false;
       int j;
@@ -568,7 +540,10 @@ template < class R >
 template < class S, class T >
 inline
 SSVectorBase<R>& SSVectorBase<R>::assign2product4setup(const SVSetBase<S>& A,
-      const SSVectorBase<T>& x)
+      const SSVectorBase<T>& x,
+      Timer* timeSparse, Timer* timeFull,
+      int& nCallsSparse, int& nCallsFull
+                                                      )
 {
    assert(A.num() == x.dim());
    assert(x.isSetup());
@@ -576,18 +551,42 @@ SSVectorBase<R>& SSVectorBase<R>::assign2product4setup(const SVSetBase<S>& A,
 
    if(x.size() == 1)
    {
+      if(timeSparse != 0)
+         timeSparse->start();
+
       assign2product1(A, x);
       setupStatus = true;
+
+      if(timeSparse != 0)
+         timeSparse->stop();
+
+      ++nCallsSparse;
    }
    else if(isSetup() && (double(x.size()) * A.memSize() <= shortProductFactor * dim() * A.num()))
    {
+      if(timeSparse != 0)
+         timeSparse->start();
+
       assign2productShort(A, x);
       setupStatus = true;
+
+      if(timeSparse != 0)
+         timeSparse->stop();
+
+      ++nCallsSparse;
    }
    else
    {
+      if(timeFull != 0)
+         timeFull->start();
+
       assign2productFull(A, x);
       setupStatus = false;
+
+      if(timeFull != 0)
+         timeFull->stop();
+
+      ++nCallsFull;
    }
 
    assert(isConsistent());
@@ -797,8 +796,7 @@ template < class S, class T >
 inline
 SSVectorBase<R>& SSVectorBase<R>::assign2productAndSetup(const SVSetBase<S>& A, SSVectorBase<T>& x)
 {
-   if(x.isSetup())
-      return assign2product4setup(A, x);
+   assert(!x.isSetup());
 
    if(x.dim() == 0)
    {
@@ -1149,99 +1147,12 @@ std::ostream& operator<<(std::ostream& s, const VectorBase<R>& vec)
 
 
 
-/// Negation.
-template < class R >
-inline
-DVectorBase<R> operator-(const VectorBase<R>& vec)
-{
-   DVectorBase<R> res(vec.dim());
-
-   for(int i = 0; i < res.dim(); ++i)
-      res[i] = -vec[i];
-
-   return res;
-}
-
-
-
-/// Addition.
-template < class R >
-inline
-DVectorBase<R> operator+(const VectorBase<R>& v, const VectorBase<R>& w)
-{
-   assert(v.dim() == w.dim());
-
-   DVectorBase<R> res(v.dim());
-
-   for(int i = 0; i < res.dim(); ++i)
-      res[i] = v[i] + w[i];
-
-   return res;
-}
-
-
-
-/// Addition.
-template < class R >
-inline
-DVectorBase<R> operator+(const VectorBase<R>& v, const SVectorBase<R>& w)
-{
-   DVectorBase<R> res(v);
-
-   res += w;
-
-   return res;
-}
-
-
-
-/// Addition.
-template < class R >
-inline
-DVectorBase<R> operator+(const SVectorBase<R>& v, const VectorBase<R>& w)
-{
-   return w + v;
-}
-
-
-
 /// Subtraction.
 template < class R >
 inline
-DVectorBase<R> operator-(const VectorBase<R>& v, const VectorBase<R>& w)
+VectorBase<R> operator-(const SVectorBase<R>& v, const VectorBase<R>& w)
 {
-   assert(v.dim() == w.dim());
-
-   DVectorBase<R> res(v.dim());
-
-   for(int i = 0; i < res.dim(); ++i)
-      res[i] = v[i] - w[i];
-
-   return res;
-}
-
-
-
-/// Subtraction.
-template < class R >
-inline
-DVectorBase<R> operator-(const VectorBase<R>& v, const SVectorBase<R>& w)
-{
-   DVectorBase<R> res(v);
-
-   res -= w;
-
-   return res;
-}
-
-
-
-/// Subtraction.
-template < class R >
-inline
-DVectorBase<R> operator-(const SVectorBase<R>& v, const VectorBase<R>& w)
-{
-   DVectorBase<R> res(w.dim());
+   VectorBase<R> res(w.dim());
 
    for(int i = 0; i < res.dim(); ++i)
       res[i] = -w[i];
@@ -1251,30 +1162,6 @@ DVectorBase<R> operator-(const SVectorBase<R>& v, const VectorBase<R>& w)
    return res;
 }
 
-
-
-/// Scaling.
-template < class R >
-inline
-DVectorBase<R> operator*(const VectorBase<R>& v, R x)
-{
-   DVectorBase<R> res(v.dim());
-
-   for(int i = 0; i < res.dim(); ++i)
-      res[i] = x * v[i];
-
-   return res;
-}
-
-
-
-/// Scaling.
-template < class R >
-inline
-DVectorBase<R> operator*(R x, const VectorBase<R>& v)
-{
-   return v * x;
-}
 
 
 
@@ -1303,10 +1190,9 @@ DSVectorBase<R> operator*(R x, const SVectorBase<R>& v)
 
 
 
-/// Input operator.
 template < class R >
 inline
-std::istream& operator>>(std::istream& s, DVectorBase<R>& vec)
+std::istream& operator>>(std::istream& s, VectorBase<R>& vec)
 {
    char c;
    R val;

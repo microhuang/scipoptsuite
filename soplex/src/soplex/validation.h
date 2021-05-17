@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -25,6 +25,7 @@
 namespace soplex
 {
 
+template <class R>
 class Validation
 {
 public:
@@ -33,17 +34,16 @@ public:
    bool           validate;
 
    /// external solution used for validation
-   char*          validatesolution;
+   std::string          validatesolution;
 
    /// tolerance used for validation
-   double         validatetolerance;
+   R         validatetolerance;
 
    /// default constructor
    Validation()
    {
       validate = false;
       validatetolerance = 1e-5;
-      validatesolution = 0;
    }
 
    /// default destructor
@@ -53,15 +53,18 @@ public:
    }
 
    /// updates the external solution used for validation
-   bool updateExternalSolution(char* solution);
+   bool updateExternalSolution(const std::string& solution);
 
    /// updates the tolerance used for validation
-   bool updateValidationTolerance(char* tolerance);
+   bool updateValidationTolerance(const std::string& tolerance);
 
    /// validates the soplex solution using the external solution
-   void validateSolveReal(SoPlex& soplex);
+   void validateSolveReal(SoPlexBase<R>& soplex);
 };
 
 } /* namespace soplex */
+
+// For general templated functions
+#include "validation.hpp"
 
 #endif /* SRC_VALIDATION_H_ */

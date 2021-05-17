@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -38,7 +38,8 @@ namespace soplex
 
    See SPxPricer for a class documentation.
 */
-class SPxWeightPR : public SPxPricer
+template <class R>
+class SPxWeightPR : public SPxPricer<R>
 {
 private:
 
@@ -46,17 +47,17 @@ private:
    /**@name Data */
    ///@{
    /// column penalties
-   DVector cPenalty;
+   VectorBase<R> cPenalty;
    /// row penalties
-   DVector rPenalty;
+   VectorBase<R> rPenalty;
    /// penalties for leaving alg
-   DVector leavePenalty;
+   VectorBase<R> leavePenalty;
    ///
-   const Real* penalty;
+   const R* penalty;
    ///
-   const Real* coPenalty;
+   const R* coPenalty;
    /// length of objective vector.
-   Real objlength;
+   R objlength;
    ///@}
 
    //-------------------------------------
@@ -77,14 +78,14 @@ public:
    ///@{
    /// default constructor
    SPxWeightPR()
-      : SPxPricer("Weight")
+      : SPxPricer<R>("Weight")
       , penalty(0)
       , coPenalty(0)
       , objlength(0)
    {}
    /// copy constructor
    SPxWeightPR(const SPxWeightPR& old)
-      : SPxPricer(old)
+      : SPxPricer<R>(old)
       , cPenalty(old.cPenalty)
       , rPenalty(old.rPenalty)
       , leavePenalty(old.leavePenalty)
@@ -110,7 +111,7 @@ public:
    {
       if(this != &rhs)
       {
-         SPxPricer::operator=(rhs);
+         SPxPricer<R>::operator=(rhs);
          cPenalty = rhs.cPenalty;
          rPenalty = rhs.rPenalty;
          leavePenalty = rhs.leavePenalty;
@@ -136,7 +137,7 @@ public:
    virtual ~SPxWeightPR()
    {}
    /// clone function for polymorphism
-   inline virtual SPxPricer* clone()  const
+   inline virtual SPxPricer<R>* clone()  const
    {
       return new SPxWeightPR(*this);
    }
@@ -146,11 +147,11 @@ public:
    /**@name Access / modification */
    ///@{
    /// sets the solver
-   virtual void load(SPxSolver* base);
+   virtual void load(SPxSolverBase<R>* base);
    /// set entering/leaving algorithm
-   void setType(SPxSolver::Type tp);
+   void setType(typename SPxSolverBase<R>::Type tp);
    /// set row/column representation
-   void setRep(SPxSolver::Representation rep);
+   void setRep(typename SPxSolverBase<R>::Representation rep);
    ///
    virtual int selectLeave();
    ///
@@ -177,4 +178,8 @@ public:
    ///@}
 };
 } // namespace soplex
+
+// For general templated functions
+#include "spxweightpr.hpp"
+
 #endif // _SPXWEIGHTPR_H_

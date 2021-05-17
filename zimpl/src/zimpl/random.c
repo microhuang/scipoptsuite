@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2007-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2007-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,13 +26,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <stdbool.h>
 #include <math.h>
+//#include <assert.h>
 
 /* #define TRACE 1 */
 
 #include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/random.h"
 
 /* 

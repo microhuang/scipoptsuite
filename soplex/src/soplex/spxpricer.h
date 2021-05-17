@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -37,12 +37,13 @@ namespace soplex
    enter or leave the simplex basis, depending on the chosen simplex type.
 
    An SPxPricer first #load%s the SoPlex object for which pricing is to
-   be performed. Then, depending of the SPxSolver::Type, methods
+   be performed. Then, depending of the SPxSolverBase<R>::Type, methods
    #selectEnter() and #entered4() (for entering Simplex) or #selectLeave()
    and #left4() (for leaving Simplex) are called by SoPlex. The SPxPricer
-   object is informed of a change of the SPxSolver::Type by calling method
+   object is informed of a change of the SPxSolverBase<R>::Type by calling method
    #setType().
 */
+template <class R>
 class SPxPricer
 {
 protected:
@@ -53,16 +54,18 @@ protected:
    /// name of the pricer
    const char* m_name;
    /// the solver
-   SPxSolver*  thesolver;
+
+   SPxSolverBase<R>*
+   thesolver; //@todo The template type should be identified? Do I have to defined two of them?
    /// violation bound
-   Real        theeps;
+   R        theeps;
    ///@}
 
 
    struct IdxElement
    {
       int idx;
-      Real val;
+      R val;
    };
 
    /// Compare class to sort idx/val pairs, used for hypersparse pricing leaving
@@ -76,12 +79,13 @@ protected:
 
       const IdxElement*  elements;
 
-      Real operator()(
+      R operator()(
          IdxElement      a,
          IdxElement      b
       ) const
       {
-         return b.val - a.val;
+         //the first case is needed to handle inf-values
+         return (a.val == b.val) ? 0 : b.val - a.val;
       }
    };
 
@@ -109,7 +113,7 @@ public:
    /// loads LP.
    /** Loads the solver and LP for which pricing steps are to be performed.
     */
-   virtual void load(SPxSolver* p_solver)
+   virtual void load(SPxSolverBase<R>* p_solver)
    {
       thesolver = p_solver;
    }
@@ -120,14 +124,14 @@ public:
       thesolver = 0;
    }
 
-   /// returns loaded SPxSolver object.
-   virtual SPxSolver* solver() const
+   /// returns loaded SPxSolverBase object.
+   virtual SPxSolverBase<R>* solver() const
    {
       return thesolver;
    }
 
    /// returns violation bound \ref soplex::SPxPricer::theeps "theeps".
-   virtual Real epsilon() const
+   virtual R epsilon() const
    {
       return theeps;
    }
@@ -135,7 +139,7 @@ public:
    /// sets violation bound.
    /** Inequality violations are accepted, if their size is less than \p eps.
     */
-   virtual void setEpsilon(Real eps)
+   virtual void setEpsilon(R eps)
    {
       assert(eps >= 0.0);
 
@@ -145,19 +149,19 @@ public:
    /// sets pricing type.
    /** Informs pricer about (a change of) the loaded SoPlex's Type. In
        the sequel, only the corresponding select methods may be called.
-    */
-   virtual void setType(SPxSolver::Type)
+   */
+   virtual void setType(typename SPxSolverBase<R>::Type)
    {
-      thesolver->weights.reDim(0);
-      thesolver->coWeights.reDim(0);
-      thesolver->weightsAreSetup = false;
+      this->thesolver->weights.reDim(0);
+      this->thesolver->coWeights.reDim(0);
+      this->thesolver->weightsAreSetup = false;
    }
 
    /// sets basis representation.
    /** Informs pricer about (a change of) the loaded SoPlex's
        Representation.
    */
-   virtual void setRep(SPxSolver::Representation)
+   virtual void setRep(typename SPxSolverBase<R>::Representation)
    {}
    ///@}
 
@@ -168,7 +172,7 @@ public:
    /** Selects the index of a vector to leave the basis. The selected index
        i, say, must be in the range 0 <= i < solver()->dim() and its
        tested value must fullfill solver()->test()[i] < -#epsilon().
-    */
+   */
    virtual int selectLeave() = 0;
 
    /// performs leaving pivot.
@@ -177,11 +181,11 @@ public:
        the basis for \p id to come in at this position. When being called,
        all vectors of SoPlex involved in such an entering update are
        setup correctly and may be accessed via the corresponding methods
-       (\ref SPxSolver::fVec() "fVec()", \ref SPxSolver::pVec() "pVec()",
+       (\ref SPxSolverBase<R>::fVec() "fVec()", \ref SPxSolverBase<R>::pVec() "pVec()",
        etc.). In general, argument \p n will be the one returned by the
        SPxPricer at the previous call to #selectLeave(). However, one can not
        rely on this.
-    */
+   */
    virtual void left4(int /*n*/, SPxId /*id*/) {}
 
    /// selects Id to enter basis.
@@ -192,11 +196,11 @@ public:
 
        Note:
        When method #selectEnter() is called by the loaded SoPlex
-       object, all values from \ref SPxSolver::coTest() "coTest()" are
+       object, all values from \ref SPxSolverBase<R>::coTest() "coTest()" are
        up to date. However, whether the elements of
-       \ref SPxSolver::test() "test()" are up to date depends on the
-       SPxSolver::Pricing type.
-    */
+       \ref SPxSolverBase<R>::test() "test()" are up to date depends on the
+       SPxSolverBase<R>::Pricing type.
+   */
    virtual SPxId selectEnter() = 0;
 
    /// performs entering pivot.
@@ -205,11 +209,11 @@ public:
        at the \p n 'th position. When being called, all vectors of SoPlex
        involved in such an entering update are setup correctly and may be
        accessed via the corresponding methods
-       (\ref SPxSolver::fVec() "fVec()", \ref SPxSolver::pVec() "pVec()",
+       (\ref SPxSolverBase<R>::fVec() "fVec()", \ref SPxSolverBase<R>::pVec() "pVec()",
        etc.). In general, argument \p id will be the one returned by the
        SPxPricer at the previous call to #selectEnter(). However, one can not
        rely on this.
-    */
+   */
    virtual void entered4(SPxId /*id*/, int /*n*/)
    {}
    ///@}

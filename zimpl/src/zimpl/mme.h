@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,7 +30,7 @@
 extern "C" {
 #endif
 
-#define ZIMPL_VERSION  338
+#define ZIMPL_VERSION  340
 
 /* the following is not in code.h because code.h needs mme.h anyway,
  * but we also need these declaratons.
@@ -72,13 +72,13 @@ typedef struct mono          Mono;     /* From mono.h */
 /* zimpllib.c
  */
 extern int          verbose;
-/*lint -function(exit,zpl_exit) */
-extern void         zpl_exit(int retval);
+//lint -function(exit, zpl_exit) 
+extern void zpl_exit(int retval) is_NORETURN;
 
 /* source.c
  */
-/*lint -sem(        show_source, nulterm(2), 1p == 1 && 2p) */
-extern void         show_source(FILE* fp, const char* text, int column);
+//lint -sem(show_source, inout(1), 1p == 1, 2p, chneg(3)) 
+extern void show_source(FILE* fp, const char* text, int column) expects_NONNULL;
 
 /* vinst.c
  */
@@ -120,14 +120,6 @@ extern void interns_exit(void);
 #define Trace(fname) /* */
 #endif /* TRACE */
 
-#if defined(__GNUC__) || defined(__CLANG__)
-#define UNUSED __attribute__ ((unused))
-#define NORETURN __attribute__ ((noreturn))
-#else
-#define UNUSED
-#define NORETURN
-#endif /* __GNUC__ || __CLANG__ */
-   
 #ifdef __cplusplus
 }
 #endif

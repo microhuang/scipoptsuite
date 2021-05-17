@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -27,6 +27,7 @@ namespace soplex
 {
 template < class R > class VectorBase;
 template < class S > class SSVectorBase;
+template < class R > class SLinSolver;
 
 /**@brief   Dynamic sparse vectors.
  * @ingroup Algebra
@@ -41,7 +42,7 @@ template < class S > class SSVectorBase;
 template < class R >
 class DSVectorBase : public SVectorBase<R>
 {
-   friend class SLinSolver;
+   friend class SLinSolver<R>;
 
 private:
 

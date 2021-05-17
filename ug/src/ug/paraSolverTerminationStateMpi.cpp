@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -32,7 +32,7 @@ using namespace UG;
 MPI_Datatype
 ParaSolverTerminationStateMpi::createDatatype(){
 
-   const int nBlocks = 30;
+   const int nBlocks = 33;
 
    MPI_Datatype datatype;
 
@@ -117,91 +117,104 @@ ParaSolverTerminationStateMpi::createDatatype(){
    displacements[13] = address - startAddress;
 
    MPI_CALL(
-      MPI_Get_address( &nTotalRestarts, &address )
+      MPI_Get_address( &nTransferredBendersCutsFromSolver, &address )
    );
    displacements[14] = address - startAddress;
    MPI_CALL(
-      MPI_Get_address( &minRestarts, &address )
+      MPI_Get_address( &minTransferredBendersCutsFromSolver, &address )
    );
    displacements[15] = address - startAddress;
    MPI_CALL(
-      MPI_Get_address( &maxRestarts, &address )
+      MPI_Get_address( &maxTransferredBendersCutsFromSolver, &address )
    );
    displacements[16] = address - startAddress;
+
    MPI_CALL(
-      MPI_Get_address( &nTightened, &address )
+      MPI_Get_address( &nTotalRestarts, &address )
    );
    displacements[17] = address - startAddress;
    MPI_CALL(
-      MPI_Get_address( &nTightenedInt, &address )
+      MPI_Get_address( &minRestarts, &address )
    );
    displacements[18] = address - startAddress;
+   MPI_CALL(
+      MPI_Get_address( &maxRestarts, &address )
+   );
+   displacements[19] = address - startAddress;
+   MPI_CALL(
+      MPI_Get_address( &nTightened, &address )
+   );
+   displacements[20] = address - startAddress;
+   MPI_CALL(
+      MPI_Get_address( &nTightenedInt, &address )
+   );
+   displacements[21] = address - startAddress;
 
    MPI_CALL(
       MPI_Get_address( &runningTime, &address )
-   );
-   displacements[19] = address - startAddress;
-   types[19] = MPI_DOUBLE;
-
-   MPI_CALL(
-      MPI_Get_address( &idleTimeToFirstParaNode, &address )
-   );
-   displacements[20] = address - startAddress;
-   types[20] = MPI_DOUBLE;
-
-   MPI_CALL(
-      MPI_Get_address( &idleTimeBetweenParaNodes, &address )
-   );
-   displacements[21] = address - startAddress;
-   types[21] = MPI_DOUBLE;
-
-   MPI_CALL(
-      MPI_Get_address( &idleTimeAfterLastParaNode, &address )
    );
    displacements[22] = address - startAddress;
    types[22] = MPI_DOUBLE;
 
    MPI_CALL(
-      MPI_Get_address( &idleTimeToWaitNotificationId, &address )
+      MPI_Get_address( &idleTimeToFirstParaNode, &address )
    );
    displacements[23] = address - startAddress;
    types[23] = MPI_DOUBLE;
 
    MPI_CALL(
-      MPI_Get_address( &idleTimeToWaitAckCompletion, &address )
+      MPI_Get_address( &idleTimeBetweenParaNodes, &address )
    );
    displacements[24] = address - startAddress;
    types[24] = MPI_DOUBLE;
 
    MPI_CALL(
-      MPI_Get_address( &idleTimeToWaitToken, &address )
+      MPI_Get_address( &idleTimeAfterLastParaNode, &address )
    );
    displacements[25] = address - startAddress;
    types[25] = MPI_DOUBLE;
 
    MPI_CALL(
-      MPI_Get_address( &totalRootNodeTime, &address )
+      MPI_Get_address( &idleTimeToWaitNotificationId, &address )
    );
    displacements[26] = address - startAddress;
    types[26] = MPI_DOUBLE;
 
    MPI_CALL(
-      MPI_Get_address( &minRootNodeTime, &address )
+      MPI_Get_address( &idleTimeToWaitAckCompletion, &address )
    );
    displacements[27] = address - startAddress;
    types[27] = MPI_DOUBLE;
 
    MPI_CALL(
-      MPI_Get_address( &maxRootNodeTime, &address )
+      MPI_Get_address( &idleTimeToWaitToken, &address )
    );
    displacements[28] = address - startAddress;
    types[28] = MPI_DOUBLE;
 
    MPI_CALL(
-      MPI_Get_address( &detTime, &address )
+      MPI_Get_address( &totalRootNodeTime, &address )
    );
    displacements[29] = address - startAddress;
    types[29] = MPI_DOUBLE;
+
+   MPI_CALL(
+      MPI_Get_address( &minRootNodeTime, &address )
+   );
+   displacements[30] = address - startAddress;
+   types[30] = MPI_DOUBLE;
+
+   MPI_CALL(
+      MPI_Get_address( &maxRootNodeTime, &address )
+   );
+   displacements[31] = address - startAddress;
+   types[31] = MPI_DOUBLE;
+
+   MPI_CALL(
+      MPI_Get_address( &detTime, &address )
+   );
+   displacements[32] = address - startAddress;
+   types[32] = MPI_DOUBLE;
 
    MPI_CALL(
          MPI_Type_create_struct(nBlocks, blockLengths, displacements, types, &datatype)

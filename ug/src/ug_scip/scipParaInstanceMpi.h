@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -119,6 +119,17 @@ public:
          {
             SCIP_CALL_ABORT( SCIPcopyConss(scip, tempScip, varmap, conssmap, TRUE, FALSE, &success) );
          }
+
+#if SCIP_APIVERSION > 39
+         if( success )
+         {
+            SCIP_Bool valid;
+
+            /* copy the Benders' decomposition plugins explicitly, because it requires the variable mapping hash map */
+            SCIP_CALL_ABORT( SCIPcopyBenders(scip, tempScip, NULL, TRUE, &valid) );
+         }
+#endif
+
          if( !success )
          {
             if( SCIPgetNConss(scip) > 0 )

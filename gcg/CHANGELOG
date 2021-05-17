@@ -1,3 +1,26 @@
+GCG Version 3.0.4
+=================
+
+Bug fixes
+---------
+
+- Fix segmentation fault.
+- Fix commands 'transform' and 'presolve': Check SCIP_STAGE before calling SCIPdialogExecTransform() and SCIPdialogExecPresolve().
+
+
+GCG Version 3.0.3
+=================
+
+Bug fixes
+---------
+
+- Fix several segmentation faults. 
+- Skip Farkas pricing only if at least one solution of the original problem was successfully added to the master variable space.
+- Interrupt the pricing loop if SCIP reports that the solving process should be stopped.
+- Disable the column pool in probing mode.
+- 'write matrix' and 'write transmatrix' set PDF as file format in the created gnuplot file.
+
+
 GCG Version 3.0.2
 =================
 
@@ -20,7 +43,7 @@ GCG Version 3.0.1
 Command line interface:
 -----------------------
 
-- 'write matrix' and 'write origmatrix' for writing a gnuplot file showing the coefficient matrix
+- 'write matrix' and 'write transmatrix' for writing a gnuplot file showing the (original and presolved) coefficient matrix
 
 New/changed parameters:
 -----------------------

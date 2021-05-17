@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,14 +28,15 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
+//#include <assert.h>
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #include "zimpl/lint.h"
-#include <stdbool.h>
 #include "zimpl/mshell.h"
+
 #include "zimpl/stkchk.h"
 #include "zimpl/random.h"
 #include "zimpl/blkmem.h"

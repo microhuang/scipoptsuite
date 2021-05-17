@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,13 +26,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <stdbool.h>
+//#include <assert.h>
 
 /* #define TRACE  1  */
 
 #include "zimpl/lint.h"
-#include <stdbool.h>
 #include "zimpl/mshell.h"
+
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
 #include "zimpl/elem.h"
@@ -78,7 +79,8 @@ void interns_exit()
    internal_vars = 0;
    internal_cons = 0;
 }
-     
+
+//lint -sem(create_new_constraint, 1p, 2p, custodial(3), inout(3), 3p == 1, 5p == 1)
 static void create_new_constraint(
    const char*  basename,
    const char*  extension,

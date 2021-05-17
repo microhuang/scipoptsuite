@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,12 +27,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <stdbool.h>
+//#include <assert.h>
 
 /* #define TRACE 1 */
 
-#include <stdbool.h>
+#include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
 #include "zimpl/elem.h"
@@ -151,11 +153,11 @@ bool term_is_valid(const Term* term)
    int i;
 
    if (term == NULL || !SID_ok(term, TERM_SID) || term->used > term->size)
-      abort();
+      return false;
 
    for(i = 0; i < term->used; i++)
       if (numb_equal(mono_get_coeff(term->elem[i]), numb_zero()))
-         abort();      
+         return false;      
 
    return true;
 }
@@ -345,7 +347,7 @@ Term* term_simplify(const Term* term_org)
    
    assert(term_is_valid(term_org));
 
-   term = term_new(term_org->used);
+   term = term_new(term_org->used + TERM_EXTEND_SIZE);
    hash = hash_new(HASH_MONO, term_org->used);
 
    numb_set(term->constant, term_org->constant);

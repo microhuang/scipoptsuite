@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,13 +28,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <assert.h>
+//#include <assert.h>
 #include <stdbool.h>
 
 #include <gmp.h>
 
 #include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/gmpmisc.h"
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"

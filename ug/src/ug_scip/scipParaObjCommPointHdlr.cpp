@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -267,9 +267,10 @@ ScipParaObjCommPointHdlr::scip_exec(
          /** set cutoff value */
          if( scipParaSolver->getGlobalBestIncumbentValue() < SCIPgetObjlimit(scip) )
          {
-            SCIP_CALL_ABORT( SCIPsetObjlimit(scip, scipParaSolver->getGlobalBestIncumbentValue()) );
+            scipParaObjLimitUpdator->update();
+            // SCIP_CALL_ABORT( SCIPsetObjlimit(scip, scipParaSolver->getGlobalBestIncumbentValue()) );
          }
-         scipParaSolver->globalIncumbnetValueIsReflected();
+         // scipParaSolver->globalIncumbnetValueIsReflected();
          // std::cout << "***** R." << scipParaSolver->getRank() << ", in event = " << SCIPeventGetType(event) << std::endl;
          if( !interrupting  && SCIPisObjIntegral(scip) )
          {
@@ -328,88 +329,91 @@ ScipParaObjCommPointHdlr::scip_exec(
          {
             index = scipParaSolver->getProbIndex(index);
          }
-         if( boundtype == SCIP_BOUNDTYPE_LOWER )
+         if( index < scipParaSolver->getNOrgVars() )
          {
-            if( SCIPvarGetType(var) != SCIP_VARTYPE_CONTINUOUS )
+            if( boundtype == SCIP_BOUNDTYPE_LOWER )
             {
-               assert( SCIPisFeasIntegral(scip, newbound) );
-               newbound = SCIPfeasCeil(scip, newbound);
-            }
-#ifdef UG_DEBUG_SOLUTION
-            SCIP_Real solvalue = 0.0;
-            SCIP_CALL(SCIPdebugGetSolVal(scip,var, &solvalue));
-            std::cout << "Sender side SolValue: " << SCIPvarGetName(var) << " = " << solvalue << std::endl;
-            std::cout << "Sender side (SCIP_BOUNDTYPE_LOWER): " << SCIPvarGetName(var) << " = " << newbound << std::endl;
-            SCIP_CALL_ABORT( SCIPdebugCheckLbGlobal(scip,var,newbound) );
-#endif
-            // assert( SCIPisLE(scip,scipParaSolver->getOrgVarLb(index), newbound) &&
-            assert( SCIPisGE(scip,scipParaSolver->getOrgVarUb(index), newbound) );
-            if( SCIPisGT(scip, newbound, scipParaSolver->getTightenedVarLb(index) ) ) // &&
-                //  SCIPisLE(scip, newbound, scipParaSolver->getTightenedVarUb(index) ) )  // just for safety
-            {
-               // this assertion may not be hold
-               // assert( SCIPisLE(scip,scipParaSolver->getTightenedVarLb(index), newbound) &&
-               //      SCIPisGE(scip,scipParaSolver->getTightenedVarUb(index), newbound)  );
-               scipParaSolver->setTightenedVarLb(index, newbound);
-               int orgIndex = SCIPvarGetIndex(var);
-               if( scipParaSolver->isOriginalIndeciesMap() )
+               if( SCIPvarGetType(var) != SCIP_VARTYPE_CONTINUOUS )
                {
-                  orgIndex = scipParaSolver->getOriginalIndex(orgIndex);
+                  assert( SCIPisFeasIntegral(scip, newbound) );
+                  newbound = SCIPfeasCeil(scip, newbound);
                }
-               PARA_COMM_CALL(
-                     paraComm->send((void *)&orgIndex, 1, UG::ParaINT, 0, UG::TagLbBoundTightenedIndex )
-                     );
-               PARA_COMM_CALL(
-                     paraComm->send((void *)&newbound, 1, UG::ParaDOUBLE, 0, UG::TagLbBoundTightenedBound )
-                     );
-               /*
-               std::cout << "Rank " << paraComm->getRank()
-                     << ": send tightened lower bond. idx = " << index
-                     << ", bound = " << newbound
-                     << ", var status = " << SCIPvarGetStatus(SCIPeventGetVar(event))
-                     << std::endl;  */
-            }
-         }
-         else
-         {
-            if( SCIPvarGetType(var) != SCIP_VARTYPE_CONTINUOUS )
-            {
-               assert( SCIPisFeasIntegral(scip, newbound) );
-               newbound = SCIPfeasFloor(scip, newbound);
-            }
-#ifdef UG_DEBUG_SOLUTION
-            SCIP_Real solvalue = 0.0;
-            SCIP_CALL(SCIPdebugGetSolVal(scip,var, &solvalue));
-            std::cout << "Sender side SolValue: " << SCIPvarGetName(var) << " = " << solvalue << std::endl;
-            std::cout << "Sender side (SCIP_BOUNDTYPE_UPPER): " << SCIPvarGetName(var) << " = " << newbound << std::endl;
-            SCIP_CALL_ABORT( SCIPdebugCheckUbGlobal(scip,var,newbound) );
-#endif
-            assert( SCIPisLE(scip,scipParaSolver->getOrgVarLb(index), newbound) );
-            //     && SCIPisGE(scip,scipParaSolver->getOrgVarUb(index), newbound)  );
-            if( SCIPisLT(scip, newbound, scipParaSolver->getTightenedVarUb(index) ) ) // &&
-                  // SCIPisGE(scip, newbound, scipParaSolver->getTightenedVarLb(index) )  )   // just for safety
-            {
-               // This asertion may not be hold
-               // assert( SCIPisLE(scip,scipParaSolver->getTightenedVarLb(index), newbound) &&
-               //      SCIPisGE(scip,scipParaSolver->getTightenedVarUb(index), newbound)  );
-               scipParaSolver->setTightenedVarUb(index, newbound);
-               int orgIndex = SCIPvarGetIndex(var);
-               if( scipParaSolver->isOriginalIndeciesMap() )
+   #ifdef UG_DEBUG_SOLUTION
+               SCIP_Real solvalue = 0.0;
+               SCIP_CALL(SCIPdebugGetSolVal(scip,var, &solvalue));
+               std::cout << "Sender side SolValue: " << SCIPvarGetName(var) << " = " << solvalue << std::endl;
+               std::cout << "Sender side (SCIP_BOUNDTYPE_LOWER): " << SCIPvarGetName(var) << " = " << newbound << std::endl;
+               SCIP_CALL_ABORT( SCIPdebugCheckLbGlobal(scip,var,newbound) );
+   #endif
+               // assert( SCIPisLE(scip,scipParaSolver->getOrgVarLb(index), newbound) &&
+               assert( SCIPisGE(scip,scipParaSolver->getOrgVarUb(index), newbound) );
+               if( SCIPisGT(scip, newbound, scipParaSolver->getTightenedVarLb(index) ) ) // &&
+                   //  SCIPisLE(scip, newbound, scipParaSolver->getTightenedVarUb(index) ) )  // just for safety
                {
-                  orgIndex = scipParaSolver->getOriginalIndex(orgIndex);
+                  // this assertion may not be hold
+                  // assert( SCIPisLE(scip,scipParaSolver->getTightenedVarLb(index), newbound) &&
+                  //      SCIPisGE(scip,scipParaSolver->getTightenedVarUb(index), newbound)  );
+                  scipParaSolver->setTightenedVarLb(index, newbound);
+                  int orgIndex = SCIPvarGetIndex(var);
+                  if( scipParaSolver->isOriginalIndeciesMap() )
+                  {
+                     orgIndex = scipParaSolver->getOriginalIndex(orgIndex);
+                  }
+                  PARA_COMM_CALL(
+                        paraComm->send((void *)&orgIndex, 1, UG::ParaINT, 0, UG::TagLbBoundTightenedIndex )
+                        );
+                  PARA_COMM_CALL(
+                        paraComm->send((void *)&newbound, 1, UG::ParaDOUBLE, 0, UG::TagLbBoundTightenedBound )
+                        );
+                  /*
+                  std::cout << "Rank " << paraComm->getRank()
+                        << ": send tightened lower bond. idx = " << index
+                        << ", bound = " << newbound
+                        << ", var status = " << SCIPvarGetStatus(SCIPeventGetVar(event))
+                        << std::endl;  */
                }
-               PARA_COMM_CALL(
-                     paraComm->send((void *)&orgIndex, 1, UG::ParaINT, 0, UG::TagUbBoundTightenedIndex )
-                     );
-               PARA_COMM_CALL(
-                     paraComm->send((void *)&newbound, 1, UG::ParaDOUBLE, 0, UG::TagUbBoundTightenedBound )
-                     );
-               /*
-               std::cout << "Rank " << paraComm->getRank()
-                     << ": send tightened upper bond. idx = " << index
-                     << ", bound = " << newbound
-                     << ", var status = " << SCIPvarGetStatus(SCIPeventGetVar(event))
-                     << std::endl;  */
+            }
+            else
+            {
+               if( SCIPvarGetType(var) != SCIP_VARTYPE_CONTINUOUS )
+               {
+                  assert( SCIPisFeasIntegral(scip, newbound) );
+                  newbound = SCIPfeasFloor(scip, newbound);
+               }
+   #ifdef UG_DEBUG_SOLUTION
+               SCIP_Real solvalue = 0.0;
+               SCIP_CALL(SCIPdebugGetSolVal(scip,var, &solvalue));
+               std::cout << "Sender side SolValue: " << SCIPvarGetName(var) << " = " << solvalue << std::endl;
+               std::cout << "Sender side (SCIP_BOUNDTYPE_UPPER): " << SCIPvarGetName(var) << " = " << newbound << std::endl;
+               SCIP_CALL_ABORT( SCIPdebugCheckUbGlobal(scip,var,newbound) );
+   #endif
+               assert( SCIPisLE(scip,scipParaSolver->getOrgVarLb(index), newbound) );
+               //     && SCIPisGE(scip,scipParaSolver->getOrgVarUb(index), newbound)  );
+               if( SCIPisLT(scip, newbound, scipParaSolver->getTightenedVarUb(index) ) ) // &&
+                     // SCIPisGE(scip, newbound, scipParaSolver->getTightenedVarLb(index) )  )   // just for safety
+               {
+                  // This asertion may not be hold
+                  // assert( SCIPisLE(scip,scipParaSolver->getTightenedVarLb(index), newbound) &&
+                  //      SCIPisGE(scip,scipParaSolver->getTightenedVarUb(index), newbound)  );
+                  scipParaSolver->setTightenedVarUb(index, newbound);
+                  int orgIndex = SCIPvarGetIndex(var);
+                  if( scipParaSolver->isOriginalIndeciesMap() )
+                  {
+                     orgIndex = scipParaSolver->getOriginalIndex(orgIndex);
+                  }
+                  PARA_COMM_CALL(
+                        paraComm->send((void *)&orgIndex, 1, UG::ParaINT, 0, UG::TagUbBoundTightenedIndex )
+                        );
+                  PARA_COMM_CALL(
+                        paraComm->send((void *)&newbound, 1, UG::ParaDOUBLE, 0, UG::TagUbBoundTightenedBound )
+                        );
+                  /*
+                  std::cout << "Rank " << paraComm->getRank()
+                        << ": send tightened upper bond. idx = " << index
+                        << ", bound = " << newbound
+                        << ", var status = " << SCIPvarGetStatus(SCIPeventGetVar(event))
+                        << std::endl;  */
+               }
             }
          }
       }
@@ -508,7 +512,7 @@ ScipParaObjCommPointHdlr::scip_exec(
          && SCIPgetStage(scip) != SCIP_STAGE_INITSOLVE
          && (!scipParaSolver->isCollectingModeProhibited() ) ) // restarting is considered as root node process in ug[SCIP,*])
    {
-      nNodes = SCIPgetNNodes(scip);
+      nNodes = SCIPgetNTotalNodes(scip);
    }
 
    if( previousNNodesSolved == nNodes
@@ -533,7 +537,7 @@ ScipParaObjCommPointHdlr::scip_exec(
    previousNNodesSolved = nNodes;
 
    /** if root node is solved, set root node time */
-   if( nNodes == 2 )
+   if( nNodes == 2 && SCIPgetNNodes(scip) == 2 )
    {
       /** when a problem is solved at root,
        * its root node process time is set on paraSolver main loop */

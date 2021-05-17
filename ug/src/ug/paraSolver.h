@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -128,6 +128,9 @@ protected:
    int          nTransferredLocalCutsFromSolver;      /**< number of local cuts transferred from this Solver */
    int          minTransferredLocalCutsFromSolver;    /**< minimum number of local cuts transferred from this Solver  */
    int          maxTransferredLocalCutsFromSolver;    /**< maximum number of local cuts transferred from this Solver  */
+   int          nTransferredBendersCutsFromSolver;    /**< number of benders cuts transferred from this Solver */
+   int          minTransferredBendersCutsFromSolver;  /**< minimum number of benders cuts transferred from this Solver  */
+   int          maxTransferredBendersCutsFromSolver;  /**< maximum number of benders cuts transferred from this Solver  */
    int          nTotalRestarts;             /**< number of total restarts */
    int          minRestarts;                /**< minimum number of restarts */
    int          maxRestarts;                /**< maximum number of restarts */
@@ -142,6 +145,9 @@ protected:
    int          nTransferredLocalCuts;      /**< number of local cuts (including conflict cuts) transferred from a ParaNode */
    int          minTransferredLocalCuts;    /**< minimum number of local cuts (including conflict  cuts) transferred from a ParaNode */
    int          maxTransferredLocalCuts;    /**< maximum number of local cuts (including conflict  cuts) transferred from a ParaNode */
+   int          nTransferredBendersCuts;    /**< number of benders cuts transferred from a ParaNode */
+   int          minTransferredBendersCuts;  /**< minimum number of benders cuts transferred from a ParaNode */
+   int          maxTransferredBendersCuts;  /**< maximum number of benders cuts transferred from a ParaNode  */
    int          nTightened;                 /**< the number of tightened variable bounds in racing */
    int          nTightenedInt;              /**< the number of tightened integral variable bounds in racing */
    // long long    totalSimplexIter;           /**< total number of simplex iteration */
@@ -519,6 +525,19 @@ public:
          maxTransferredLocalCuts = n;
       }
    }
+
+   void updateNTransferredBendersCuts(int n){
+      nTransferredBendersCuts += n;
+      if( minTransferredBendersCuts > n )
+      {
+         minTransferredBendersCuts = n;
+      }
+      if( maxTransferredBendersCuts < n )
+      {
+         maxTransferredBendersCuts = n;
+      }
+   }
+
    bool isAnotherNodeIsRequested(){ return anotherNodeIsRequested; }
 
    double getPendingIncumbentValue(){ return pendingIncumbentValue; }

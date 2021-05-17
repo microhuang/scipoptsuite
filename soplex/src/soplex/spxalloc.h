@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -44,6 +44,7 @@ namespace soplex
  * @param n the number of elements \p p will point to.
  * @throw SPxMemoryException if memory could not be allocated.
  */
+
 template <class T>
 inline void spx_alloc(T& p, int n = 1)
 {
@@ -62,10 +63,10 @@ inline void spx_alloc(T& p, int n = 1)
       throw(SPxMemoryException("Error allocating memory"));
    }
 
-   if(0 == p)
+   if(nullptr == p)
    {
       std::cerr << "EMALLC01 malloc: Out of memory - cannot allocate "
-                << sizeof(*p) * (unsigned int) n << " bytes" << std::endl;
+                << sizeof(*p) * (unsigned int) n << " bytes" << std::endl; // coverity[suspicious_sizeof]
       throw(SPxMemoryException("XMALLC01 malloc: Could not allocate enough memory"));
    }
 }

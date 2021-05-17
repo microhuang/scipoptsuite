@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,20 +31,23 @@
 #pragma clang diagnostic ignored "-Wunused-macros"
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 #pragma clang diagnostic ignored "-Wunneeded-internal-declaration"
+#pragma clang diagnostic ignored "-Wunreachable-code"
 
 #pragma GCC   diagnostic ignored "-Wmissing-prototypes"
 #pragma GCC   diagnostic ignored "-Wsign-compare"
-
-/*lint -e527 -e835 -e717 */
+#pragma GCC   diagnostic ignored "-Wimplicit-fallthrough"
+#pragma GCC   diagnostic ignored "-Wsuggest-attribute=noreturn"
 
 #include <sys/types.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <ctype.h>
-#include <assert.h>
-#include <string.h>
+//#include <string.h>
 #include <stdbool.h>
+//#include <assert.h>
 
+#include "zimpl/lint.h"
 #include "zimpl/mshell.h"
+
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
 #include "zimpl/elem.h"
@@ -57,7 +60,8 @@
 #include "zimpl/strstore.h"
 #include "zimpl/mmlparse2.h"
 
-extern void yyerror(const char* s);
+/*lint -sem(yyerror, 1p, r_no) */ 
+extern void yyerror(const char* s) is_NORETURN;
 
 #define YY_DECL int yylex(YYSTYPE* lval)
 

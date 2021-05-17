@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2006-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2006-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,9 +27,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-
 #include <stdbool.h>
+//#include <assert.h>
+
+#include "zimpl/lint.h"
 #include "zimpl/mshell.h"
 #include "zimpl/ratlptypes.h"
 #include "zimpl/numb.h"
@@ -81,7 +82,7 @@ static void heap_print(FILE* fp, const Heap* heap)
 
 bool heap_is_valid(const Heap* heap)
 {
-   HeapData* data;
+   const HeapData* data;
    int       i;
    
    if (  heap           == NULL

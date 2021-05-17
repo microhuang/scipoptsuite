@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -50,6 +50,9 @@ ParaCalculationStateTh::createDatatype(
          nTransferredLocalCuts,
          minTransferredLocalCuts,
          maxTransferredLocalCuts,
+         nTransferredBendersCuts,
+         minTransferredBendersCuts,
+         maxTransferredBendersCuts,
          nRestarts,
          minIisum,
          maxIisum,
@@ -100,6 +103,9 @@ ParaCalculationStateTh::receive(
    nTransferredLocalCuts = received->nTransferredLocalCuts;
    minTransferredLocalCuts = received->nTransferredLocalCuts;
    maxTransferredLocalCuts = received->maxTransferredLocalCuts;
+   nTransferredBendersCuts = received->nTransferredBendersCuts;
+   minTransferredBendersCuts = received->nTransferredBendersCuts;
+   maxTransferredBendersCuts = received->maxTransferredBendersCuts;
    nRestarts = received->nRestarts;
    minIisum = received->minIisum;
    maxIisum = received->maxIisum;

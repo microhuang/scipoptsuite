@@ -6,7 +6,7 @@
 /*                  of the branch-cut-and-price framework                    */
 /*         SCIP --- Solving Constraint Integer Programs                      */
 /*                                                                           */
-/* Copyright (C) 2010-2019 Operations Research, RWTH Aachen University       */
+/* Copyright (C) 2010-2020 Operations Research, RWTH Aachen University       */
 /*                         Zuse Institute Berlin (ZIB)                       */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -113,8 +113,8 @@ SCIP_DECL_HASHKEYVAL(hashKeyValCol)
    assert(col != NULL);
 
    /* TODO: Improve hash function (but then we would have to store additional values for each col) */
-   keyval = SCIPhashTwo(SCIPrealHashCode(col->nvars > 0 ? col->vals[0] : 0.0),
-      SCIPcombineThreeInt(col->probnr, col->nvars, col->isray));
+   keyval = SCIPhashFour(SCIPrealHashCode(col->nvars > 0 ? col->vals[0] : 0.0), col->probnr, col->nvars,
+      col->isray);
 
    return keyval;
 }
@@ -366,6 +366,7 @@ SCIP_RETCODE GCGcolpoolPrice(
    assert(colpool->firstunprocessed <= colpool->ncols);
    assert(colpool->firstunprocessedsol <= colpool->ncols);
    assert(foundvars != NULL);
+   assert(SCIPnodeGetType(SCIPgetCurrentNode(colpool->scip)) != SCIP_NODETYPE_PROBINGNODE);
 
    colpool->ncalls++;
 
@@ -430,6 +431,7 @@ SCIP_RETCODE GCGcolpoolUpdateNode(
    )
 {
    assert(colpool != NULL);
+   assert(SCIPnodeGetType(SCIPgetCurrentNode(colpool->scip)) != SCIP_NODETYPE_PROBINGNODE);
 
    if( colpool->nodenr < 0 )
    {

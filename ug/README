@@ -62,7 +62,7 @@ and MINLPs in parallel.
 
 2. How to run ParaSCIP ("parascip" is a binary file name).
 
-    "mpirun -np #MPI_processes(#solvers + 1) parascip problem_file_name [-l <logfile>] [-q] [-sl <settings>] [-s <settings>] [-sr <root_settings>] 
+    "mpirun -np #MPI_processes(#solvers + 1) parascip parascip_param_file problem_file_name [-l <logfile>] [-q] [-sl <settings>] [-s <settings>] [-sr <root_settings>] 
      [-w <prefix_warm>] [-sth <number>] [-fsol <solution_file>] [-isol <initial solution file]"
        -l <logfile>           : copy SCIP output into log file
        -q                     : suppress SCIP screen messages
@@ -100,7 +100,7 @@ While the default parameter settings are appropriate for 2-16 cores, tuning para
 environments is more challenging.  If you would like help tuning ParaSCIP on a large-scale environment to solve 
 hard instances, please e-mail shinano@zib.de with a log file from solving your instance for about two hours 
 along with information about your platform.
-ParaSCIP has been successfully run on as many as 8000 cores of the HLRN II supercomputer and we are happy to 
+ParaSCIP has been successfully run on as many as 80,000 cores of the TITAN supercomputer and we are happy to 
 recommend parameter settings for other large-scale environments.
 
 KNOWN-BUGS-AND-WORKAROUNDS

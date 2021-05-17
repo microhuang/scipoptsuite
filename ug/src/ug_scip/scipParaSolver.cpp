@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -43,6 +43,7 @@
 #include "objscip/objscip.h"
 #include "scipParaObjMessageHdlr.h"
 #include "scipParaObjCommPointHdlr.h"
+#include "scipParaObjLimitUpdator.h"
 #include "scipParaObjProp.h"
 #include "scipParaObjBranchRule.h"
 #include "scipParaInitialStat.h"
@@ -179,7 +180,10 @@ ScipParaSolver::setWinnerRacingParams(
       UG::ParaRacingRampUpParamSet *inRacingParams   /**< winner solver pramset */
       )
 {
-   SCIP_CALL_ABORT( SCIPresetParams(scip) );
+   if( !userPlugins )
+   {
+      SCIP_CALL_ABORT( SCIPresetParams(scip) );
+   }
 
    if( paraParams->getBoolParamValue(UG::SetAllDefaultsAfterRacing) )
    {
@@ -214,7 +218,7 @@ ScipParaSolver::setRacingParams(
 {
    ScipParaRacingRampUpParamSet *scipRacingParams = dynamic_cast< ScipParaRacingRampUpParamSet * >(inRacingParams);
 
-   if( !winnerParam )
+   if( !winnerParam && !userPlugins )
    {
       SCIP_CALL_ABORT( SCIPresetParams(scip) );
    }
@@ -597,12 +601,14 @@ ScipParaSolver::createSubproblem(
       if( scipParaDiffSubproblem->getNBranchConsLinearConss() > 0 ||
             scipParaDiffSubproblem->getNBranchConsSetppcConss() > 0 ||
             scipParaDiffSubproblem->getNLinearConss() > 0 ||
+            scipParaDiffSubproblem->getNBendersLinearConss() > 0 ||
             scipParaDiffSubproblem->getNBoundDisjunctions() )
       {
          assert(addedConss == 0);
          addedConss = new SCIP_CONS*[scipParaDiffSubproblem->getNBranchConsLinearConss()
                                      + scipParaDiffSubproblem->getNBranchConsSetppcConss()
                                      + scipParaDiffSubproblem->getNLinearConss()
+                                     + scipParaDiffSubproblem->getNBendersLinearConss()
                                      + scipParaDiffSubproblem->getNBoundDisjunctions()];
       }
 
@@ -760,6 +766,56 @@ ScipParaSolver::createSubproblem(
       for(; c < (scipParaDiffSubproblem->getNBranchConsLinearConss()
             + scipParaDiffSubproblem->getNBranchConsSetppcConss()
             + scipParaDiffSubproblem->getNLinearConss()
+			+ scipParaDiffSubproblem->getNBendersLinearConss()) ; c++ )
+      {
+         SCIP_VAR** vars;
+         SCIP_Real* vals;
+         int nVars = scipParaDiffSubproblem->getNBendersLinearCoefs(i);
+
+         /* create array of variables and coefficients */
+         SCIP_CALL_ABORT( SCIPallocBufferArray(scip, &vars, nVars) );
+         SCIP_CALL_ABORT( SCIPallocBufferArray(scip, &vals, nVars) );
+
+         if( mapToProbIndecies )
+         {
+            for( int v = 0; v < nVars; ++v )
+            {
+               vars[v] = orgVars[mapToProbIndecies[mapToSolverLocalIndecies[scipParaDiffSubproblem->getIdxBendersLinearCoefsVars(i,v)]]];
+               vals[v] = scipParaDiffSubproblem->getBendersLinearCoefs(i,v);
+            }
+         }
+         else
+         {
+            for( int v = 0; v < nVars; ++v )
+            {
+               vars[v] = orgVars[scipParaDiffSubproblem->getIdxBendersLinearCoefsVars(i,v)];
+               vals[v] = scipParaDiffSubproblem->getBendersLinearCoefs(i,v);
+            }
+         }
+
+         /* create a constraint */
+         (void) SCIPsnprintf(consname, SCIP_MAXSTRLEN, "cli%d", i);
+         SCIP_CALL_ABORT( SCIPcreateConsLinear(scip, &cons, consname, nVars, vars, vals,
+               scipParaDiffSubproblem->getBendersLinearLhs(i), scipParaDiffSubproblem->getBendersLinearRhs(i),
+               TRUE, TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE) );
+         /** only a constraint whose "enforce is TRUE can be written in transformed problem */
+
+         /* add constraint to SCIP */
+         SCIP_CALL_ABORT( SCIPaddCons(scip, cons) );
+         assert(cons);
+         addedConss[c] = cons;
+         SCIP_CALL_ABORT( SCIPreleaseCons(scip, &cons) );
+         /* free temporary memory */
+         SCIPfreeBufferArray(scip, &vals);
+         SCIPfreeBufferArray(scip, &vars);
+         i++;
+      }
+
+      i = 0;
+      for(; c < (scipParaDiffSubproblem->getNBranchConsLinearConss()
+            + scipParaDiffSubproblem->getNBranchConsSetppcConss()
+            + scipParaDiffSubproblem->getNLinearConss()
+			+ scipParaDiffSubproblem->getNBendersLinearConss()
             + scipParaDiffSubproblem->getNBoundDisjunctions()) ; c++ )
       {
          SCIP_VAR** vars;
@@ -1090,7 +1146,8 @@ ScipParaSolver::freeSubproblem(
    int n = SCIPgetNOrigVars(scip);       // the number of original variables
    // assert( n == nOrgVars );
    assert( n == nOrgVarsInSolvers );
-   for( int v = 0; v < n; v++ )
+   // for( int v = 0; v < n; v++ )
+   for( int v = 0; v < nOrgVars; v++ )
    {
       SCIP_CALL_ABORT( SCIPchgVarLbGlobal( scip,orgVars[v], orgVarLbs[v] ) );
       SCIP_CALL_ABORT( SCIPchgVarUbGlobal( scip,orgVars[v], orgVarUbs[v] ) );
@@ -1131,7 +1188,10 @@ ScipParaSolver::solve(
    // if( paraParams->getBoolParamValue(UG::CheckFeasibilityInLC) )
    // {
       SCIP_CALL_ABORT( SCIPsetRealParam(scip, "numerics/feastol", (orgFeastol/10.0) ) );
-      SCIP_CALL_ABORT( SCIPsetRealParam(scip, "numerics/lpfeastol", (orgLpfeastol/10.0) ) );
+      if( SCIP_APIVERSION < 61 )
+      {
+         SCIP_CALL_ABORT( SCIPsetRealParam(scip, "numerics/lpfeastol", (orgLpfeastol/10.0) ) );
+      }
       /*
       SCIP_CALL_ABORT( SCIPsetRealParam(scip, "numerics/feastol", (orgFeastol/100.0) ) );
       SCIP_CALL_ABORT( SCIPsetRealParam(scip, "numerics/lpfeastol", (orgLpfeastol/100.0) ) );
@@ -1186,7 +1246,7 @@ ScipParaSolver::solve(
    SCIP_CALL_ABORT( SCIPsetIntParam(scip, "misc/usesymmetry", 0 ) );  // Symmetry handling technique is explicitly turn off in Solever for this version (SCIP 5.0)
 
    SCIP_CALL_ABORT( SCIPsetIntParam(scip,"timing/clocktype", 2) ); // always wall clock time, racing may change clocktype
-   writeSubproblem();
+   // writeSubproblem();
 
 #ifdef UG_DEBUG_SOLUTION
    // assert( paraNode == currentNode );
@@ -1204,6 +1264,14 @@ ScipParaSolver::solve(
       assert( SCIPdebugSolIsEnabled(scip) == FALSE );
    }
 #endif
+
+   if( paraParams->getBoolParamValue(UG::AllowTreeSearchRestart) == false )
+   {
+	   if( !isRacingStage() )
+	   {
+		   SCIP_CALL_ABORT( SCIPsetCharParam(scip, "estimation/restarts/restartpolicy", 'n' ) );
+	   }
+   }
 
    SCIP_RETCODE ret = SCIPsolve(scip);
    if( ret != SCIP_OKAY )
@@ -1575,8 +1643,10 @@ ScipParaSolver::ScipParaSolver(
       includeUserPlugins(scip);
    }
    /* include communication point handler */
-   commPointHdlr = new ScipParaObjCommPointHdlr(paraComm, this);
+   ScipParaObjLimitUpdator *updator = new ScipParaObjLimitUpdator(scip,this);
+   commPointHdlr = new ScipParaObjCommPointHdlr(paraComm, this, updator);
    SCIP_CALL_ABORT( SCIPincludeObjEventhdlr(scip, commPointHdlr, TRUE) );
+   SCIP_CALL_ABORT( SCIPincludeObjHeur(scip, updator, TRUE) );
 
    /* include propagator */
    if( ( paraParams->getIntParamValue(UG::RampUpPhaseProcess) == 1 ||
@@ -1610,7 +1680,10 @@ ScipParaSolver::ScipParaSolver(
    }
 
    SCIP_CALL_ABORT( SCIPgetRealParam(scip, "numerics/feastol", &orgFeastol ) );
-   SCIP_CALL_ABORT( SCIPgetRealParam(scip, "numerics/lpfeastol", &orgLpfeastol ) );
+   if( SCIP_APIVERSION < 61 )
+   {
+      SCIP_CALL_ABORT( SCIPgetRealParam(scip, "numerics/lpfeastol", &orgLpfeastol ) );
+   }
 
    /********************
     * Parse parameters *
@@ -1878,8 +1951,10 @@ ScipParaSolver::ScipParaSolver(
    }
 
    /* include communication point handler */
-   commPointHdlr = new ScipParaObjCommPointHdlr(paraComm, this);
+   ScipParaObjLimitUpdator *updator = new ScipParaObjLimitUpdator(scip,this);
+   commPointHdlr = new ScipParaObjCommPointHdlr(paraComm, this, updator);
    SCIP_CALL_ABORT( SCIPincludeObjEventhdlr(scip, commPointHdlr, TRUE) );
+   SCIP_CALL_ABORT( SCIPincludeObjHeur(scip, updator, TRUE) );
 
    /* include propagator */
    if( ( paraParams->getIntParamValue(UG::RampUpPhaseProcess) == 1 ||
@@ -1913,7 +1988,10 @@ ScipParaSolver::ScipParaSolver(
    }
 
    SCIP_CALL_ABORT( SCIPgetRealParam(scip, "numerics/feastol", &orgFeastol ) );
-   SCIP_CALL_ABORT( SCIPgetRealParam(scip, "numerics/lpfeastol", &orgLpfeastol ) );
+   if( SCIP_APIVERSION < 61 )
+   {
+      SCIP_CALL_ABORT( SCIPgetRealParam(scip, "numerics/lpfeastol", &orgLpfeastol ) );
+   }
 
    /********************
     * Parse parameters *
@@ -2361,7 +2439,8 @@ ScipParaSolver::saveOrgProblemBounds(
          tightenedVarLbs = new double[nOrgVarsInSolvers];
          tightenedVarUbs = new double[nOrgVarsInSolvers];
          // for(int v = 0; v < paraInstance->getVarIndexRange(); v++)
-         for( int v = 0; v < nOrgVarsInSolvers ; v++ )
+         // for( int v = 0; v < nOrgVarsInSolvers ; v++ )
+         for( int v = 0; v < nOrgVars ; v++ )
          {
             // int orgIndex = scipParaInstance->getOrigProbIndex(SCIPvarGetIndex(vars[v]));
             // assert(orgIndex >= 0);
@@ -2374,7 +2453,8 @@ ScipParaSolver::saveOrgProblemBounds(
       else
       {
          // for(int v = 0; v < paraInstance->getVarIndexRange(); v++)
-         for( int v = 0; v < nOrgVarsInSolvers ; v++ )
+         // for( int v = 0; v < nOrgVarsInSolvers ; v++ )
+         for( int v = 0; v < nOrgVars; v++ )
          {
             // int orgIndex = scipParaInstance->getOrigProbIndex(SCIPvarGetIndex(vars[v]));
             // assert(orgIndex >= 0);
@@ -2410,7 +2490,8 @@ ScipParaSolver::saveOrgProblemBounds(
          tightenedVarLbs = new double[nOrgVars];
          tightenedVarUbs = new double[nOrgVars];
          // for(int v = 0; v < paraInstance->getVarIndexRange(); v++)
-         for( int v = 0; v < nOrgVarsInSolvers; v++ )
+         // for( int v = 0; v < nOrgVarsInSolvers; v++ )
+         for( int v = 0; v < nOrgVars; v++ )
          {
             tightenedVarLbs[v] = orgVarLbs[v] = scipParaInstance->getVarLb(v);
             tightenedVarUbs[v] = orgVarUbs[v] = scipParaInstance->getVarUb(v);
@@ -2421,7 +2502,8 @@ ScipParaSolver::saveOrgProblemBounds(
       else
       {
          // for(int v = 0; v < paraInstance->getVarIndexRange(); v++)
-         for( int v = 0; v < nOrgVarsInSolvers; v++ )
+         // for( int v = 0; v < nOrgVarsInSolvers; v++ )
+         for( int v = 0; v < nOrgVars; v++ )
          {
             orgVarLbs[v] = scipParaInstance->getVarLb(v);
             orgVarUbs[v] = scipParaInstance->getVarUb(v);
@@ -2487,8 +2569,10 @@ ScipParaSolver::reinitializeInstance(
    }
 
    /* include communication point handler */
-   commPointHdlr = new ScipParaObjCommPointHdlr(paraComm, this);
+   ScipParaObjLimitUpdator *updator = new ScipParaObjLimitUpdator(scip,this);
+   commPointHdlr = new ScipParaObjCommPointHdlr(paraComm, this, updator);
    SCIP_CALL_ABORT( SCIPincludeObjEventhdlr(scip, commPointHdlr, TRUE) );
+   SCIP_CALL_ABORT( SCIPincludeObjHeur(scip, updator, TRUE) );
 
    /* include propagator */
    if( ( paraParams->getIntParamValue(UG::RampUpPhaseProcess) == 1 ||

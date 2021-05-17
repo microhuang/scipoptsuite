@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,12 +27,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <stdbool.h>
 #include <ctype.h>
+//#include <assert.h>
 
 #include "zimpl/lint.h"
-#include <stdbool.h>
 #include "zimpl/mshell.h"
+
 #include "zimpl/mme.h"
 #include "zimpl/stmt.h"
 #include "zimpl/prog.h"
@@ -84,7 +85,8 @@ static void skip_comment(const MFP* fp, int* lineno)
 static char* get_line(char** buf, int* size, const MFP* fp, int* lineno)
 {
    bool in_string = false;
-   int  cnt = 0;
+   // bool in_bslash = false;  no backslah handling
+   int  cnt       = 0;
 
    for(;;)
    {
@@ -129,7 +131,7 @@ static char* get_line(char** buf, int* size, const MFP* fp, int* lineno)
        */
       if (cnt == 0 && isspace(c))
          continue;
-      
+
       if (c == '"')
          in_string = !in_string;
 
@@ -247,7 +249,7 @@ void prog_load(Prog* prog, const char* cmdpipe, const char* filename)
    {
       myfilename = malloc(strlen(filename) + strlen(cmdpipe) + 1024);
       
-      sprintf(&myfilename[1], cmdpipe, filename);
+      sprintf(&myfilename[1], cmdpipe, filename); //lint !e2662
       myfilename[0] = '#';
    }
    if (NULL == (fp = mio_open(myfilename, ".zpl")))

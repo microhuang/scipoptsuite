@@ -3,7 +3,7 @@
 /*                  This file is part of the class library                   */
 /*       SoPlex --- the Sequential object-oriented simPlex.                  */
 /*                                                                           */
-/*    Copyright (C) 1996-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 1996-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  SoPlex is distributed under the terms of the ZIB Academic Licence.       */
@@ -38,18 +38,19 @@ namespace soplex
 
    See SPxRatioTester for a class documentation.
 */
-class SPxFastRT : public SPxRatioTester
+template <class R>
+class SPxFastRT : public SPxRatioTester<R>
 {
 protected:
    //-------------------------------------
    /**@name Data */
    ///@{
    /// parameter for computing minimum stability requirement
-   Real minStab;
+   R minStab;
    /// |value| < epsilon is considered 0.
-   Real epsilon;
+   R epsilon;
    /// currently allowed infeasibility.
-   Real fastDelta;
+   R fastDelta;
    /// flag used in methods minSelect/maxSelect to retrieve correct basis status
    bool iscoid;
    ///@}
@@ -64,7 +65,7 @@ protected:
    /// tightens stability requirements.
    void tighten();
    /// Compute stability requirement
-   Real minStability(Real maxabs);
+   R minStability(R maxabs);
 
    /// Max phase 1 value.
    /** Computes the maximum value \p val that could be used for updating \p update
@@ -74,14 +75,14 @@ protected:
        of \p update.delta() is computed and returned in \p maxabs. Internally all
        loops are started at \p start and incremented by \p incr.
     */
-   int maxDelta(Real& val, Real& maxabs, UpdateVector& update,
-                const Vector& lowBound, const Vector& upBound, int start, int incr) const;
+   int maxDelta(R& val, R& maxabs, UpdateVector<R>& update,
+                const VectorBase<R>& lowBound, const VectorBase<R>& upBound, int start, int incr) const;
 
    ///
-   int maxDelta(Real& val, Real& maxabs);
+   int maxDelta(R& val, R& maxabs);
 
    ///
-   SPxId maxDelta(int& nr, Real& val, Real& maxabs);
+   SPxId maxDelta(int& nr, R& val, R& maxabs);
 
    /// Min phase 1 value.
    /** Computes the minimum value \p val that could be used for updating \p update
@@ -91,14 +92,14 @@ protected:
        of \p update.delta() is computed and returned in \p maxabs. Internally all
        loops are started at \p start and incremented by \p incr.
    */
-   int minDelta(Real& val, Real& maxabs, UpdateVector& update,
-                const Vector& lowBound, const Vector& upBound, int start, int incr) const;
+   int minDelta(R& val, R& maxabs, UpdateVector<R>& update,
+                const VectorBase<R>& lowBound, const VectorBase<R>& upBound, int start, int incr) const;
 
    ///
-   int minDelta(Real& val, Real& maxabs);
+   int minDelta(R& val, R& maxabs);
 
    ///
-   SPxId minDelta(int& nr, Real& val, Real& maxabs);
+   SPxId minDelta(int& nr, R& val, R& maxabs);
 
    /// selects stable index for maximizing ratio test.
    /** Selects from all update values \p val < \p max the one with the largest
@@ -107,14 +108,14 @@ protected:
        update value \p val. Internally all loops are started at \p start and
        incremented by \p incr.
    */
-   int maxSelect(Real& val, Real& stab, Real& best, Real& bestDelta,
-                 Real max, const UpdateVector& upd, const Vector& low,
-                 const Vector& up, int start = 0, int incr = 1) const;
+   int maxSelect(R& val, R& stab, R& best, R& bestDelta,
+                 R max, const UpdateVector<R>& upd, const VectorBase<R>& low,
+                 const VectorBase<R>& up, int start = 0, int incr = 1) const;
    ///
-   int maxSelect(Real& val, Real& stab, Real& bestDelta, Real max);
+   int maxSelect(R& val, R& stab, R& bestDelta, R max);
    ///
-   SPxId maxSelect(int& nr, Real& val, Real& stab,
-                   Real& bestDelta, Real max);
+   SPxId maxSelect(int& nr, R& val, R& stab,
+                   R& bestDelta, R max);
 
    /// selects stable index for minimizing ratio test.
    /** Select from all update values \p val > \p max the one with the largest
@@ -123,44 +124,44 @@ protected:
        update value \p val. Internally all loops are started at \p start and
        incremented by \p incr.
    */
-   int minSelect(Real& val, Real& stab, Real& best, Real& bestDelta,
-                 Real max, const UpdateVector& upd, const Vector& low,
-                 const Vector& up, int start = 0, int incr = 1) const;
+   int minSelect(R& val, R& stab, R& best, R& bestDelta,
+                 R max, const UpdateVector<R>& upd, const VectorBase<R>& low,
+                 const VectorBase<R>& up, int start = 0, int incr = 1) const;
    ///
-   int minSelect(Real& val, Real& stab,
-                 Real& bestDelta, Real max);
+   int minSelect(R& val, R& stab,
+                 R& bestDelta, R max);
    ///
-   SPxId minSelect(int& nr, Real& val, Real& stab,
-                   Real& bestDelta, Real max);
+   SPxId minSelect(int& nr, R& val, R& stab,
+                   R& bestDelta, R max);
 
    /// tests for stop after phase 1.
    /** Tests whether a shortcut after phase 1 is feasible for the
        selected leave pivot. In this case return the update value in \p sel.
    */
-   bool minShortLeave(Real& sel, int leave, Real maxabs);
+   bool minShortLeave(R& sel, int leave, R maxabs);
    ///
-   bool maxShortLeave(Real& sel, int leave, Real maxabs);
+   bool maxShortLeave(R& sel, int leave, R maxabs);
 
    /// numerical stability tests.
    /** Tests whether the selected leave index needs to be discarded (and do so)
        and the ratio test is to be recomputed.
        If \p polish is set to true no shifts are applied.
    */
-   bool minReLeave(Real& sel, int leave, Real maxabs, bool polish = false);
+   bool minReLeave(R& sel, int leave, R maxabs, bool polish = false);
    ///
-   bool maxReLeave(Real& sel, int leave, Real maxabs, bool polish = false);
+   bool maxReLeave(R& sel, int leave, R maxabs, bool polish = false);
 
    /// numerical stability check.
    /** Tests whether the selected enter \p id needs to be discarded (and do so)
        and the ratio test is to be recomputed.
    */
-   bool minReEnter(Real& sel, Real maxabs, const SPxId& id, int nr, bool polish = false);
+   bool minReEnter(R& sel, R maxabs, const SPxId& id, int nr, bool polish = false);
    ///
-   bool maxReEnter(Real& sel, Real maxabs, const SPxId& id, int nr, bool polish = false);
+   bool maxReEnter(R& sel, R maxabs, const SPxId& id, int nr, bool polish = false);
 
    /// Tests and returns whether a shortcut after phase 1 is feasible for the
    /// selected enter pivot.
-   bool shortEnter(const SPxId& enterId, int nr, Real max, Real maxabs) const;
+   bool shortEnter(const SPxId& enterId, int nr, R max, R maxabs) const;
    ///@}
 
 public:
@@ -170,7 +171,7 @@ public:
    ///@{
    /// default constructor
    SPxFastRT()
-      : SPxRatioTester("Fast")
+      : SPxRatioTester<R>("Fast")
       , minStab(DEFAULT_BND_VIOL)
       , epsilon(DEFAULT_EPS_ZERO)
       , fastDelta(DEFAULT_BND_VIOL)
@@ -178,7 +179,7 @@ public:
    {}
    /// copy constructor
    SPxFastRT(const SPxFastRT& old)
-      : SPxRatioTester(old)
+      : SPxRatioTester<R>(old)
       , minStab(old.minStab)
       , epsilon(old.epsilon)
       , fastDelta(old.fastDelta)
@@ -189,7 +190,7 @@ public:
    {
       if(this != &rhs)
       {
-         SPxRatioTester::operator=(rhs);
+         SPxRatioTester<R>::operator=(rhs);
          minStab = rhs.minStab;
          epsilon = rhs.epsilon;
          fastDelta = rhs.fastDelta;
@@ -200,7 +201,7 @@ public:
    }
    /// bound flipping constructor
    SPxFastRT(const char* name)
-      : SPxRatioTester(name)
+      : SPxRatioTester<R>(name)
       , minStab(DEFAULT_BND_VIOL)
       , epsilon(DEFAULT_EPS_ZERO)
       , fastDelta(DEFAULT_BND_VIOL)
@@ -210,7 +211,7 @@ public:
    virtual ~SPxFastRT()
    {}
    /// clone function for polymorphism
-   inline virtual SPxRatioTester* clone() const
+   inline virtual SPxRatioTester<R>* clone() const
    {
       return new SPxFastRT(*this);
    }
@@ -220,28 +221,31 @@ public:
    /**@name Access / modification */
    ///@{
    ///
-   virtual void load(SPxSolver* solver);
+   virtual void load(SPxSolverBase<R>* solver);
    ///
-   virtual int selectLeave(Real& val, Real, bool polish = false);
+   virtual int selectLeave(R& val, R, bool polish = false);
    ///
-   virtual SPxId selectEnter(Real& val, int, bool polish = false);
+   virtual SPxId selectEnter(R& val, int, bool polish = false);
    ///
-   virtual void setType(SPxSolver::Type type);
+   virtual void setType(typename SPxSolverBase<R>::Type type);
    ///
-   virtual void setDelta(Real newDelta)
+   virtual void setDelta(R newDelta)
    {
       if(newDelta <= DEFAULT_EPS_ZERO)
          newDelta = DEFAULT_EPS_ZERO;
 
-      delta = newDelta;
+      this->delta = newDelta;
       fastDelta = newDelta;
    }
    ///
-   virtual Real getDelta()
+   virtual R getDelta()
    {
       return fastDelta;
    }
    ///@}
 };
 } // namespace soplex
+
+#include "spxfastrt.hpp"
+
 #endif // _SPXFASTRT_H_

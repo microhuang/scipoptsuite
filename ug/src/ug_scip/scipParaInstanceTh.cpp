@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -102,6 +102,17 @@ ScipParaInstance::copyScipEnvironment(
    {
       SCIP_CALL_ABORT( SCIPcopyConss(scip, *targetscip, varmap, conssmap, TRUE, FALSE, &success) );
    }
+
+#if SCIP_APIVERSION > 39
+   if( success )
+   {
+      SCIP_Bool valid;
+
+      /* copy the Benders' decomposition plugins explicitly, because it requires the variable mapping hash map */
+      SCIP_CALL_ABORT( SCIPcopyBenders(scip, *targetscip, NULL, TRUE, &valid) );
+   }
+#endif
+
    if( !success )
    {
       if( SCIPgetNConss(scip) > 0 )
@@ -215,6 +226,17 @@ ScipParaInstanceTh::bcast(
       {
          SCIP_CALL_ABORT( SCIPcopyConss(scip, tempScip, varmap, conssmap, TRUE, FALSE, &success) );
       }
+
+#if SCIP_APIVERSION > 39
+      if( success )
+      {
+         SCIP_Bool valid;
+
+         /* copy the Benders' decomposition plugins explicitly, because it requires the variable mapping hash map */
+         SCIP_CALL_ABORT( SCIPcopyBenders(scip, tempScip, NULL, TRUE, &valid) );
+      }
+#endif
+
       commTh->unlockApp();
       if( !success )
       {
@@ -385,6 +407,17 @@ ScipParaInstanceTh::bcast(
          {
             SCIP_CALL_ABORT( SCIPcopyConss(received, scip, varmap, conssmap, TRUE, FALSE, &success) );
          }
+
+#if SCIP_APIVERSION > 39
+         if( success )
+         {
+            SCIP_Bool valid;
+
+            /* copy the Benders' decomposition plugins explicitly, because it requires the variable mapping hash map */
+            SCIP_CALL_ABORT( SCIPcopyBenders(received, scip, NULL, TRUE, &valid) );
+         }
+#endif
+
          commTh->unlockApp();
          if( !success )
          {
@@ -403,6 +436,9 @@ ScipParaInstanceTh::bcast(
          nVars = SCIPgetNVars(received);
          varIndexRange = nVars;
          int n = SCIPgetNVars(scip);
+
+	 // std::cout << "nVars = " << nVars << ", varIndexRange = " << varIndexRange << ", n = " << n << std::endl;
+
          // assert( nVars == n );
          assert( nVars <= n );
          if( nVars < n )
@@ -422,12 +458,17 @@ ScipParaInstanceTh::bcast(
          }
          // SCIP_VAR **srcVars = SCIPgetVars(received);
          SCIP_VAR **srcVars = SCIPgetVars(received);
+
+         assert(SCIPgetNTotalVars(scip) >= SCIPgetNVars(received));
+
          // SCIP_VAR **targetVars = SCIPgetVars(scip);
          // int countOrigVars = 0;
          // for( int i = 0; i < varIndexRange; i++ )
-         for( int i = 0; i < SCIPgetNTotalVars(scip); i++ )
+         //for( int i = 0; i < SCIPgetNTotalVars(scip); i++ )
+         for( int i = 0; i < SCIPgetNVars(received); i++ )
          {
             SCIP_VAR* copyvar = (SCIP_VAR*)SCIPhashmapGetImage(varmap, (void*)srcVars[i]);
+
             // std::cout << i << ": index = " << SCIPvarGetIndex(copyvar) << std::endl;
             // assert(SCIPvarGetIndex(copyvar) >= 0);
             // if( copyvar && SCIPvarGetProbindex(copyvar) < nVars )
@@ -582,6 +623,17 @@ ScipParaInstance::createProblem(
       {
          SCIP_CALL_ABORT( SCIPcopyConss(scip, inScip, varmap, conssmap, TRUE, FALSE, &success) );
       }
+
+#if SCIP_APIVERSION > 39
+      if( success )
+      {
+         SCIP_Bool valid;
+
+         /* copy the Benders' decomposition plugins explicitly, because it requires the variable mapping hash map */
+         SCIP_CALL_ABORT( SCIPcopyBenders(scip, inScip, NULL, TRUE, &valid) );
+      }
+#endif
+
       if( !success )
       {
          if( SCIPgetNConss(scip) > 0 )

@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -56,6 +56,9 @@ public:
          int          inNTransferredLocalCutsFromSolver,      /**< number of local cuts transferred from this Solver */
          int          inMinTransferredLocalCutsFromSolver,    /**< minimum number of local cuts transferred from this Solver  */
          int          inMaxTransferredLocalCutsFromSolver,    /**< maximum number of local cuts transferred from this Solver  */
+         int          inNTransferredBendersCutsFromSolver,    /**< number of benders cuts transferred from this Solver */
+         int          inMinTransferredBendersCutsFromSolver,  /**< minimum number of benders cuts transferred from this Solver  */
+         int          inMaxTransferredBendersCutsFromSolver,  /**< maximum number of benders cuts transferred from this Solver  */
          int          inNTotalRestarts,             /**< number of total restarts */
          int          inMinRestarts,                /**< minimum number of restarts */
          int          inMaxRestarts,                /**< maximum number of restarts */
@@ -87,6 +90,9 @@ public:
                inNTransferredLocalCutsFromSolver,
                inMinTransferredLocalCutsFromSolver,
                inMaxTransferredLocalCutsFromSolver,
+               inNTransferredBendersCutsFromSolver,
+               inMinTransferredBendersCutsFromSolver,
+               inMaxTransferredBendersCutsFromSolver,
                inNTotalRestarts,
                inMinRestarts,
                inMaxRestarts,

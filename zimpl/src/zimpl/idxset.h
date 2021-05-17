@@ -7,7 +7,7 @@
 /*                                                                           */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
- * Copyright (C) 2001-2019 by Thorsten Koch <koch@zib.de>
+ * Copyright (C) 2001-2020 by Thorsten Koch <koch@zib.de>
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -41,27 +41,27 @@ typedef struct index_set         IdxSet;
 
 /* idxset.c
  */
-/*lint -sem(        idxset_new, 1p == 1 && 2p == 1 && 3p == 1, @P > malloc(1P)) */
+//lint -sem(        idxset_new, 1p == 1, 2p == 1, inout(3), 3p == 1, @P >= malloc(1)) 
 extern IdxSet*      idxset_new(
-   const Tuple* tuple, const Set* set, CodeNode* lexpr, bool is_unrestricted);
-/*lint -sem(        idxset_free, custodial(1), 1p == 1) */
-extern void         idxset_free(IdxSet* idxset);
-/*lint -sem(        idxset_is_valid, 1p == 1) */
-extern bool         idxset_is_valid(const IdxSet* idxset);
-/*lint -sem(        idxset_copy, 1p == 1, @P > malloc(1P)) */
-extern IdxSet*      idxset_copy(const IdxSet* source);
-/*lint -sem(        idxset_get_lexpr, 1p == 1, @P > malloc(1P)) */
-extern CodeNode*    idxset_get_lexpr(const IdxSet* idxset);
-/*lint -sem(        idxset_get_tuple, 1p == 1, @P > malloc(1P)) */
-extern const Tuple* idxset_get_tuple(const IdxSet* idxset);
-/*lint -sem(        idxset_get_set, 1p == 1, @P > malloc(1P)) */
-extern const Set*   idxset_get_set(const IdxSet* idxset);
-/*lint -sem(        idxset_is_unrestricted, 1p == 1) */
-extern bool         idxset_is_unrestricted(const IdxSet* idxset);
-/*lint -sem(        idxset_print, 1p == 1 && 2p == 1) */
-extern void         idxset_print(FILE* fp, const IdxSet* idxset);
+   const Tuple* tuple, const Set* set, CodeNode* lexpr, bool is_unrestricted) expects_NONNULL returns_NONNULL;
+//lint -sem(        idxset_free, custodial(1), inout(1), 1p == 1) 
+extern void         idxset_free(IdxSet* idxset) expects_NONNULL;
+//lint -sem(        idxset_is_valid, pure, 1p == 1) 
+extern bool         idxset_is_valid(const IdxSet* idxset) expects_NONNULL is_PURE;
+//lint -sem(        idxset_copy, 1p == 1, @P >= malloc(1)) 
+extern IdxSet*      idxset_copy(const IdxSet* source) expects_NONNULL returns_NONNULL;
+//lint -sem(        idxset_get_lexpr, 1p == 1, @p == 1) 
+extern CodeNode*    idxset_get_lexpr(const IdxSet* idxset) expects_NONNULL returns_NONNULL is_PURE;
+//lint -sem(        idxset_get_tuple, 1p == 1, @p == 1) 
+extern const Tuple* idxset_get_tuple(const IdxSet* idxset) expects_NONNULL returns_NONNULL is_PURE;
+//lint -sem(        idxset_get_set, 1p == 1, @p == 1) 
+extern const Set*   idxset_get_set(const IdxSet* idxset) expects_NONNULL returns_NONNULL is_PURE;
+//lint -sem(        idxset_is_unrestricted, 1p == 1) 
+extern bool         idxset_is_unrestricted(const IdxSet* idxset) expects_NONNULL is_PURE;
+//lint -sem(        idxset_print, 1p == 1, inout(1), 2p == 1) 
+extern void         idxset_print(FILE* fp, const IdxSet* idxset) expects_NONNULL;
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _IDXSET_H_ */
+#endif // _IDXSET_H_ 

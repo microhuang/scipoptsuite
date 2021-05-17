@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -68,44 +68,46 @@ static const int TransferConflictCuts                = ParaParamsBoolFirst + 10;
 static const int TransferConflicts                   = ParaParamsBoolFirst + 11;
 static const int TransferBranchStats                 = ParaParamsBoolFirst + 12;
 static const int TransferVarValueStats               = ParaParamsBoolFirst + 13;
-static const int CheckEffectOfRootNodePreprocesses   = ParaParamsBoolFirst + 14;
-static const int Checkpoint                          = ParaParamsBoolFirst + 15;
-static const int CollectOnce                         = ParaParamsBoolFirst + 16;
-static const int ProvingRun                          = ParaParamsBoolFirst + 17;
-static const int SetAllDefaultsAfterRacing           = ParaParamsBoolFirst + 18;
-static const int DistributeBestPrimalSolution        = ParaParamsBoolFirst + 19;
-static const int LightWeightRootNodeProcess          = ParaParamsBoolFirst + 20;
-static const int RacingStatBranching                 = ParaParamsBoolFirst + 21;
-static const int IterativeBreakDown                  = ParaParamsBoolFirst + 22;
-static const int NoPreprocessingInLC                 = ParaParamsBoolFirst + 23;
-static const int NoUpperBoundTransferInRacing        = ParaParamsBoolFirst + 24;
-static const int MergeNodesAtRestart                 = ParaParamsBoolFirst + 25;
-static const int NChangeIntoCollectingModeNSolvers   = ParaParamsBoolFirst + 26;
-static const int Deterministic                       = ParaParamsBoolFirst + 27;
-static const int EventWeightedDeterministic          = ParaParamsBoolFirst + 28;
-static const int NoSolverPresolvingAtRoot            = ParaParamsBoolFirst + 29;
-static const int NoSolverPresolvingAtRootDefaultSet  = ParaParamsBoolFirst + 30;
-static const int NoAggressiveSeparatorInRacing       = ParaParamsBoolFirst + 31;
-static const int StatisticsToStdout                  = ParaParamsBoolFirst + 32;
-static const int AllBoundChangesTransfer             = ParaParamsBoolFirst + 33;
-static const int NoAllBoundChangesTransferInRacing   = ParaParamsBoolFirst + 34;
-static const int BreakFirstSubtree                   = ParaParamsBoolFirst + 35;
-static const int InitialNodesGeneration              = ParaParamsBoolFirst + 36;
-static const int RestartRacing                       = ParaParamsBoolFirst + 37;
-static const int CheckGapInLC                        = ParaParamsBoolFirst + 38;
-static const int CheckFeasibilityInLC                = ParaParamsBoolFirst + 39;
-static const int ControlCollectingModeOnSolverSide   = ParaParamsBoolFirst + 40;
-static const int CleanUp                             = ParaParamsBoolFirst + 41;
-static const int DualBoundGainTest                   = ParaParamsBoolFirst + 42;
-static const int GenerateReducedCheckpointFiles      = ParaParamsBoolFirst + 43;
-static const int OutputPresolvedInstance             = ParaParamsBoolFirst + 44;
-static const int CustomizedToSharedMemory            = ParaParamsBoolFirst + 45;
-static const int DynamicAdjustNotificationInterval   = ParaParamsBoolFirst + 46;
-static const int LocalBranching                      = ParaParamsBoolFirst + 47;
-static const int CommunicateTighterBoundsInRacing    = ParaParamsBoolFirst + 48;
-static const int KeepRacingUntilToFindFirstSolution  = ParaParamsBoolFirst + 49;
+static const int TransferBendersCuts                 = ParaParamsBoolFirst + 14;
+static const int CheckEffectOfRootNodePreprocesses   = ParaParamsBoolFirst + 15;
+static const int Checkpoint                          = ParaParamsBoolFirst + 16;
+static const int CollectOnce                         = ParaParamsBoolFirst + 17;
+static const int ProvingRun                          = ParaParamsBoolFirst + 18;
+static const int SetAllDefaultsAfterRacing           = ParaParamsBoolFirst + 19;
+static const int DistributeBestPrimalSolution        = ParaParamsBoolFirst + 20;
+static const int LightWeightRootNodeProcess          = ParaParamsBoolFirst + 21;
+static const int RacingStatBranching                 = ParaParamsBoolFirst + 22;
+static const int IterativeBreakDown                  = ParaParamsBoolFirst + 23;
+static const int NoPreprocessingInLC                 = ParaParamsBoolFirst + 24;
+static const int NoUpperBoundTransferInRacing        = ParaParamsBoolFirst + 25;
+static const int MergeNodesAtRestart                 = ParaParamsBoolFirst + 26;
+static const int NChangeIntoCollectingModeNSolvers   = ParaParamsBoolFirst + 27;
+static const int Deterministic                       = ParaParamsBoolFirst + 28;
+static const int EventWeightedDeterministic          = ParaParamsBoolFirst + 29;
+static const int NoSolverPresolvingAtRoot            = ParaParamsBoolFirst + 30;
+static const int NoSolverPresolvingAtRootDefaultSet  = ParaParamsBoolFirst + 31;
+static const int NoAggressiveSeparatorInRacing       = ParaParamsBoolFirst + 32;
+static const int StatisticsToStdout                  = ParaParamsBoolFirst + 33;
+static const int AllBoundChangesTransfer             = ParaParamsBoolFirst + 34;
+static const int NoAllBoundChangesTransferInRacing   = ParaParamsBoolFirst + 35;
+static const int BreakFirstSubtree                   = ParaParamsBoolFirst + 36;
+static const int InitialNodesGeneration              = ParaParamsBoolFirst + 37;
+static const int RestartRacing                       = ParaParamsBoolFirst + 38;
+static const int CheckGapInLC                        = ParaParamsBoolFirst + 39;
+static const int CheckFeasibilityInLC                = ParaParamsBoolFirst + 40;
+static const int ControlCollectingModeOnSolverSide   = ParaParamsBoolFirst + 41;
+static const int CleanUp                             = ParaParamsBoolFirst + 42;
+static const int DualBoundGainTest                   = ParaParamsBoolFirst + 43;
+static const int GenerateReducedCheckpointFiles      = ParaParamsBoolFirst + 44;
+static const int OutputPresolvedInstance             = ParaParamsBoolFirst + 45;
+static const int CustomizedToSharedMemory            = ParaParamsBoolFirst + 46;
+static const int DynamicAdjustNotificationInterval   = ParaParamsBoolFirst + 47;
+static const int LocalBranching                      = ParaParamsBoolFirst + 48;
+static const int CommunicateTighterBoundsInRacing    = ParaParamsBoolFirst + 49;
+static const int KeepRacingUntilToFindFirstSolution  = ParaParamsBoolFirst + 50;
+static const int AllowTreeSearchRestart              = ParaParamsBoolFirst + 51;
 //-------------------------------------------------------------------------
-static const int ParaParamsBoolLast                  = ParaParamsBoolFirst + 49;
+static const int ParaParamsBoolLast                  = ParaParamsBoolFirst + 51;
 static const int ParaParamsBoolN                     = ParaParamsBoolLast - ParaParamsBoolFirst + 1;
 /** Int parameters ======================================================*/
 static const int ParaParamsIntFirst                  = ParaParamsBoolLast  + 1;
@@ -147,8 +149,9 @@ static const int NMergingNodesAtRestart              = ParaParamsIntFirst + 33;
 static const int NBoundChangesOfMergeNode            = ParaParamsIntFirst + 34;
 static const int NNodesToKeepInCheckpointFile        = ParaParamsIntFirst + 35;
 static const int NMaxRacingBaseParameters            = ParaParamsIntFirst + 36;
+static const int NBoundChangesForTransferNode        = ParaParamsIntFirst + 37;
 //-------------------------------------------------------------------------
-static const int ParaParamsIntLast                   = ParaParamsIntFirst + 36;
+static const int ParaParamsIntLast                   = ParaParamsIntFirst + 37;
 static const int ParaParamsIntN                      = ParaParamsIntLast - ParaParamsIntFirst + 1;
 /** Longint parameters ==================================================*/
 static const int ParaParamsLongintFirst              = ParaParamsIntLast + 1;

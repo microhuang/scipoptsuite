@@ -3,7 +3,7 @@
 /*             This file is part of the program and software framework       */
 /*                  UG --- Ubquity Generator Framework                       */
 /*                                                                           */
-/*    Copyright (C) 2002-2019 Konrad-Zuse-Zentrum                            */
+/*    Copyright (C) 2002-2020 Konrad-Zuse-Zentrum                            */
 /*                            fuer Informationstechnik Berlin                */
 /*                                                                           */
 /*  UG is distributed under the terms of the ZIB Academic Licence.           */
@@ -108,6 +108,9 @@ ParaSolver::ParaSolver(
       nTransferredLocalCutsFromSolver(0),
       minTransferredLocalCutsFromSolver(INT_MAX),
       maxTransferredLocalCutsFromSolver(INT_MIN),
+      nTransferredBendersCutsFromSolver(0),
+      minTransferredBendersCutsFromSolver(INT_MAX),
+      maxTransferredBendersCutsFromSolver(INT_MIN),
       nTotalRestarts(0),
       minRestarts(INT_MAX),
       maxRestarts(INT_MIN),
@@ -121,6 +124,9 @@ ParaSolver::ParaSolver(
       nTransferredLocalCuts(0),
       minTransferredLocalCuts(INT_MAX),
       maxTransferredLocalCuts(INT_MIN),
+      nTransferredBendersCuts(0),
+      minTransferredBendersCuts(INT_MAX),
+      maxTransferredBendersCuts(INT_MIN),
       nTightened(0),
       nTightenedInt(0),
       minIisum(DBL_MAX),
@@ -248,6 +254,9 @@ ParaSolver::~ParaSolver(
           nTransferredLocalCutsFromSolver,
           minTransferredLocalCutsFromSolver,
           maxTransferredLocalCutsFromSolver,
+          nTransferredBendersCutsFromSolver,
+          minTransferredBendersCutsFromSolver,
+          maxTransferredBendersCutsFromSolver,
           nTotalRestarts,
           minRestarts,
           maxRestarts,
@@ -1161,6 +1170,7 @@ ParaSolver::sendCompletionOfCalculation(
          compTime, rootNodeTime, nSolved,nSent, nImprovedIncumbent, terminationState, nSolvedWithNoPreprocesses,
          nSimplexIterRoot, averageSimplexIter,
          nTransferredLocalCuts, minTransferredLocalCuts, maxTransferredLocalCuts,
+         nTransferredBendersCuts, minTransferredBendersCuts, maxTransferredBendersCuts,
          getNRestarts(), minIisum, maxIisum, minNii, maxNii, solverDualBound );
    paraCalculationState->send(paraComm, 0, TagCompletionOfCalculation);
    delete paraCalculationState;
@@ -1195,6 +1205,16 @@ ParaSolver::sendCompletionOfCalculation(
       maxTransferredLocalCutsFromSolver = maxTransferredLocalCuts;
    }
 
+   nTransferredBendersCutsFromSolver += nTransferredBendersCuts;
+   if( minTransferredBendersCutsFromSolver > minTransferredBendersCuts  )
+   {
+      minTransferredBendersCutsFromSolver = minTransferredBendersCuts;
+   }
+   if( maxTransferredBendersCutsFromSolver < maxTransferredBendersCuts  )
+   {
+      maxTransferredBendersCutsFromSolver = maxTransferredBendersCuts;
+   }
+
    nTotalRestarts += getNRestarts();
    if( minRestarts > getNRestarts() )
    {
@@ -1212,6 +1232,9 @@ ParaSolver::sendCompletionOfCalculation(
    nTransferredLocalCuts = 0;
    minTransferredLocalCuts = INT_MAX;
    maxTransferredLocalCuts = INT_MIN;
+   nTransferredBendersCuts = 0;
+   minTransferredBendersCuts = INT_MAX;
+   maxTransferredBendersCuts = INT_MIN;
    /**********************************
    * accumulate total root node time *
    ***********************************/
@@ -1251,6 +1274,9 @@ ParaSolver::sendCompletionOfCalculation(
          nTransferredLocalCutsFromSolver,
          minTransferredLocalCutsFromSolver,
          maxTransferredLocalCutsFromSolver,
+         nTransferredBendersCutsFromSolver,
+         minTransferredBendersCutsFromSolver,
+         maxTransferredBendersCutsFromSolver,
          nTotalRestarts,
          minRestarts,
          maxRestarts,
@@ -1314,6 +1340,9 @@ ParaSolver::sendCompletionOfCalculation(
          nTransferredLocalCutsFromSolver,
          minTransferredLocalCutsFromSolver,
          maxTransferredLocalCutsFromSolver,
+         nTransferredBendersCutsFromSolver,
+         minTransferredBendersCutsFromSolver,
+         maxTransferredBendersCutsFromSolver,
          nTotalRestarts,
          minRestarts,
          maxRestarts,
